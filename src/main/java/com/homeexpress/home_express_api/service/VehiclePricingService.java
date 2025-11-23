@@ -7,22 +7,21 @@ import com.homeexpress.home_express_api.entity.VehiclePricing;
 import com.homeexpress.home_express_api.entity.VehicleType;
 import com.homeexpress.home_express_api.repository.TransportRepository;
 import com.homeexpress.home_express_api.repository.VehiclePricingRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class VehiclePricingService {
 
-    @Autowired
-    private VehiclePricingRepository vehiclePricingRepository;
+    private final VehiclePricingRepository vehiclePricingRepository;
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
     @Transactional
     public VehiclePricingResponse createVehiclePricing(VehiclePricingRequest request) {
@@ -188,3 +187,4 @@ public class VehiclePricingService {
         vehiclePricingRepository.save(pricing);
     }
 }
+

@@ -7,7 +7,6 @@ import com.homeexpress.home_express_api.service.EvidenceService;
 import com.homeexpress.home_express_api.service.IncidentService;
 import com.homeexpress.home_express_api.util.AuthenticationUtils;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,19 +14,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/incidents")
 public class IncidentController {
 
-    @Autowired
-    private IncidentService incidentService;
+    private final IncidentService incidentService;
 
-    @Autowired
-    private EvidenceService evidenceService;
+    private final EvidenceService evidenceService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @PostMapping
     public ResponseEntity<?> createIncident(
@@ -153,3 +151,4 @@ public class IncidentController {
         ));
     }
 }
+

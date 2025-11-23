@@ -6,7 +6,6 @@ import com.homeexpress.home_express_api.dto.payout.PayoutDTO;
 import com.homeexpress.home_express_api.entity.PayoutStatus;
 import com.homeexpress.home_express_api.service.PayoutService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -20,13 +19,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/admin/payouts")
 public class AdminPayoutController {
 
-    @Autowired
-    private PayoutService payoutService;
+    private final PayoutService payoutService;
 
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
@@ -123,3 +123,4 @@ public class AdminPayoutController {
         return ResponseEntity.ok(response);
     }
 }
+

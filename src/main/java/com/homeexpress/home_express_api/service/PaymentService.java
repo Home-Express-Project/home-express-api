@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,44 +52,35 @@ import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
 import com.homeexpress.home_express_api.exception.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class PaymentService {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
-    @Autowired
-    private PaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private PaymentConfig paymentConfig;
+    private final PaymentConfig paymentConfig;
 
-    @Autowired
-    private NotificationService notificationService;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
-    @Autowired
-    private BookingSettlementRepository settlementRepository;
+    private final BookingSettlementRepository settlementRepository;
 
-    @Autowired
-    private CommissionService commissionService;
+    private final CommissionService commissionService;
 
-    @Autowired
-    private CustomerEventService customerEventService;
+    private final CustomerEventService customerEventService;
 
-    @Autowired
-    private WalletService walletService;
+    private final WalletService walletService;
 
     public PaymentSummaryDTO getPaymentSummary(Long bookingId, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -805,3 +795,4 @@ public class PaymentService {
     }
 
 }
+

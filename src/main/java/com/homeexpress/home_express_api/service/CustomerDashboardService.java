@@ -3,16 +3,16 @@ package com.homeexpress.home_express_api.service;
 import com.homeexpress.home_express_api.dto.response.CustomerDashboardStatsResponse;
 import com.homeexpress.home_express_api.entity.BookingStatus;
 import com.homeexpress.home_express_api.repository.BookingRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class CustomerDashboardService {
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
     public CustomerDashboardStatsResponse getDashboardStats(Long customerId) {
         long total = bookingRepository.countByCustomerId(customerId);
@@ -38,3 +38,4 @@ public class CustomerDashboardService {
         return response;
     }
 }
+

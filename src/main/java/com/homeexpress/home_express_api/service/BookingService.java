@@ -20,7 +20,7 @@ import com.homeexpress.home_express_api.repository.UserRepository;
 import com.homeexpress.home_express_api.service.map.MapService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,59 +29,53 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class BookingService {
 
     private static final Logger log = LoggerFactory.getLogger(BookingService.class);
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
-    @Autowired
-    private BookingStatusHistoryRepository statusHistoryRepository;
+    private final BookingStatusHistoryRepository statusHistoryRepository;
 
-    @Autowired
-    private VnProvinceRepository provinceRepository;
+    private final VnProvinceRepository provinceRepository;
 
-    @Autowired
-    private VnDistrictRepository districtRepository;
+    private final VnDistrictRepository districtRepository;
 
-    @Autowired
-    private VnWardRepository wardRepository;
+    private final VnWardRepository wardRepository;
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
 
-    @Autowired
-    private QuotationRepository quotationRepository;
+    private final QuotationRepository quotationRepository;
 
-    @Autowired
-    private BookingItemRepository bookingItemRepository;
+    private final BookingItemRepository bookingItemRepository;
 
-    @Autowired
-    private NotificationService notificationService;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
-    @Autowired
-    private PaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
 
-    @Autowired
-    private BookingSettlementRepository settlementRepository;
+    private final BookingSettlementRepository settlementRepository;
 
-    @Autowired
-    private CustomerEventService customerEventService;
+    private final CustomerEventService customerEventService;
 
-    @Autowired
-    private MapService mapService;
+    private final MapService mapService;
 
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
     @Transactional
-    public BookingResponse createBooking(BookingRequest request, Long customerId) {
+    public BookingResponse createBooking(BookingRequest request, Long customerId, UserRole requesterRole) {
+        if (requesterRole != null &&
+                requesterRole != UserRole.CUSTOMER &&
+                requesterRole != UserRole.MANAGER) {
+            throw new UnauthorizedException("Only customers or managers can create bookings");
+        }
+
         if (!customerRepository.existsById(customerId)) {
             throw new ResourceNotFoundException("Customer not found with ID: " + customerId);
         }
@@ -148,6 +142,7 @@ public class BookingService {
         return BookingResponse.fromEntity(savedBooking);
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER','TRANSPORT')")
     @Transactional(readOnly = true)
     public BookingResponse getBookingById(Long bookingId, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -158,6 +153,24 @@ public class BookingService {
         }
 
         return BookingResponse.fromEntity(booking);
+    }
+
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
+    @Transactional(readOnly = true)
+    public List<BookingResponse> getBookingsForUser(Long customerId, Long requesterId, UserRole requesterRole) {
+        if (requesterRole == UserRole.MANAGER) {
+            if (customerId != null) {
+                return getBookingsByCustomer(customerId, requesterId, requesterRole);
+            }
+            return getAllBookings(requesterRole);
+        }
+
+        if (requesterRole == UserRole.CUSTOMER) {
+            Long effectiveCustomerId = customerId != null ? customerId : requesterId;
+            return getBookingsByCustomer(effectiveCustomerId, requesterId, requesterRole);
+        }
+
+        throw new UnauthorizedException("Access denied");
     }
 
     @Transactional(readOnly = true)
@@ -184,6 +197,7 @@ public class BookingService {
             .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
     @Transactional
     public BookingResponse updateBooking(Long bookingId, BookingUpdateRequest request, 
                                         Long userId, UserRole userRole) {
@@ -244,6 +258,7 @@ public class BookingService {
         return BookingResponse.fromEntity(updatedBooking);
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
     @Transactional
     public void cancelBooking(Long bookingId, String reason, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -275,6 +290,7 @@ public class BookingService {
         sendBookingStatusChangeNotification(booking, oldStatus, BookingStatus.CANCELLED);
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER','TRANSPORT')")
     @Transactional(readOnly = true)
     public List<BookingStatusHistoryResponse> getBookingHistory(Long bookingId, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -290,6 +306,7 @@ public class BookingService {
             .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
     @Transactional(readOnly = true)
     public List<QuotationResponse> getBookingQuotations(Long bookingId, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -329,6 +346,7 @@ public class BookingService {
     /**
      * Khách chọn transport sau khi xem bảng giá dự tính.
      */
+    @PreAuthorize("hasRole('CUSTOMER')")
     @Transactional
     public BookingResponse assignTransport(Long bookingId, Long transportId, BigDecimal estimatedPrice, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -771,6 +789,7 @@ public class BookingService {
      * Customer confirms booking completion after remaining payment is made
      * Updates booking status to CONFIRMED_BY_CUSTOMER and settlement to READY
      */
+    @PreAuthorize("hasRole('CUSTOMER')")
     @Transactional
     public BookingResponse confirmBookingCompletion(Long bookingId, ConfirmCompletionRequest request, Long customerId) {
         Booking booking = bookingRepository.findById(bookingId)
@@ -868,3 +887,4 @@ public class BookingService {
         }
     }
 }
+

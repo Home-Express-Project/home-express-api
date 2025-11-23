@@ -8,7 +8,6 @@ import com.homeexpress.home_express_api.repository.TransportPayoutRepository;
 import com.homeexpress.home_express_api.repository.UserRepository;
 import com.homeexpress.home_express_api.service.PayoutService;
 import com.homeexpress.home_express_api.util.AuthenticationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -22,22 +21,20 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/transport/payouts")
 public class TransportPayoutController {
 
-    @Autowired
-    private TransportPayoutRepository payoutRepository;
+    private final TransportPayoutRepository payoutRepository;
 
-    @Autowired
-    private BookingSettlementRepository settlementRepository;
+    private final BookingSettlementRepository settlementRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private PayoutService payoutService;
+    private final PayoutService payoutService;
 
     @GetMapping
     public ResponseEntity<?> getMyPayouts(
@@ -151,3 +148,4 @@ public class TransportPayoutController {
         return dto;
     }
 }
+

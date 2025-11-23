@@ -156,7 +156,7 @@ security:
   password-encoder:
     bcrypt-strength: ${SECURITY_PASSWORD_ENCODER_BCRYPT_STRENGTH:10}
 
-# Goong Maps API Configuration (Vietnam)
+# Goong Maps API Configuration
 goong:
   api:
     key: ${GOONG_API_KEY:}

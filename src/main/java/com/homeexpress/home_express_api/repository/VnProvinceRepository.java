@@ -1,42 +1,17 @@
 package com.homeexpress.home_express_api.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.homeexpress.home_express_api.entity.Province;
 
 @Repository
-public interface VnProvinceRepository extends JpaRepository<VnProvinceRepository.VnProvince, String> {
+public interface VnProvinceRepository extends JpaRepository<Province, String> {
 
-    List<VnProvince> findAllByOrderByProvinceNameAsc();
+    List<Province> findAllByOrderByNameAsc();
 
-    java.util.Optional<VnProvince> findFirstByProvinceNameContainingIgnoreCase(String provinceName);
-
-    @Entity
-    @Table(name = "vn_provinces")
-    class VnProvince {
-        @Id
-        private String provinceCode;
-        private String provinceName;
-
-        public String getProvinceCode() {
-            return provinceCode;
-        }
-
-        public void setProvinceCode(String provinceCode) {
-            this.provinceCode = provinceCode;
-        }
-
-        public String getProvinceName() {
-            return provinceName;
-        }
-
-        public void setProvinceName(String provinceName) {
-            this.provinceName = provinceName;
-        }
-    }
+    Optional<Province> findFirstByNameContainingIgnoreCase(String name);
 }

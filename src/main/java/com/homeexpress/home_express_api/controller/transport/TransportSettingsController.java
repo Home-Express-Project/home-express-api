@@ -8,7 +8,6 @@ import com.homeexpress.home_express_api.repository.UserRepository;
 import com.homeexpress.home_express_api.service.TransportSettingsService;
 import com.homeexpress.home_express_api.util.AuthenticationUtils;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,16 +15,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/transport/settings")
 public class TransportSettingsController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private TransportSettingsService transportSettingsService;
+    private final TransportSettingsService transportSettingsService;
 
     @GetMapping
     @PreAuthorize("hasRole('TRANSPORT')")
@@ -65,3 +64,4 @@ public class TransportSettingsController {
         return AuthenticationUtils.getUser(authentication, userRepository);
     }
 }
+

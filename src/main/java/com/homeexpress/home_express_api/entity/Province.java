@@ -25,6 +25,9 @@ public class Province {
     @Column(name = "code_name")
     private String codeName;
 
+    @Column(name = "region")
+    private String region;
+
     public Province() {
     }
 
@@ -74,5 +77,13 @@ public class Province {
 
     public void setCodeName(String codeName) {
         this.codeName = codeName;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
     }
 }

@@ -13,7 +13,6 @@ import com.homeexpress.home_express_api.repository.UserRepository;
 import com.homeexpress.home_express_api.service.PaymentService;
 import com.homeexpress.home_express_api.util.AuthenticationUtils;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,16 +20,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1")
 public class CustomerPaymentController {
 
-    @Autowired
-    private PaymentService paymentService;
+    private final PaymentService paymentService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @GetMapping("/bookings/{bookingId}/payments/summary")
     public ResponseEntity<?> getPaymentSummary(
@@ -224,3 +223,4 @@ public class CustomerPaymentController {
         }
     }
 }
+

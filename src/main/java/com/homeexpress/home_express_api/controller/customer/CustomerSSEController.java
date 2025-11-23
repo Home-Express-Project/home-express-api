@@ -8,7 +8,6 @@ import com.homeexpress.home_express_api.repository.UserRepository;
 import com.homeexpress.home_express_api.service.CustomerEventService;
 import com.homeexpress.home_express_api.util.AuthenticationUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,23 +18,22 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.HashMap;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Controller for Server-Sent Events (SSE) endpoints for customer real-time updates
  */
+@RequiredArgsConstructor
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/customer")
 public class CustomerSSEController {
 
-    @Autowired
-    private CustomerEventService customerEventService;
+    private final CustomerEventService customerEventService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
     /**
      * SSE endpoint for real-time booking updates
@@ -145,4 +143,5 @@ public class CustomerSSEController {
         return error;
     }
 }
+
 

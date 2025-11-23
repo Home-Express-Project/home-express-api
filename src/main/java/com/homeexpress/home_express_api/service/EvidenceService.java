@@ -11,7 +11,6 @@ import com.homeexpress.home_express_api.repository.BookingRepository;
 import com.homeexpress.home_express_api.repository.EvidenceRepository;
 import com.homeexpress.home_express_api.repository.IncidentRepository;
 import com.homeexpress.home_express_api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -19,23 +18,21 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class EvidenceService {
 
     private static final Logger log = LoggerFactory.getLogger(EvidenceService.class);
 
-    @Autowired
-    private EvidenceRepository evidenceRepository;
+    private final EvidenceRepository evidenceRepository;
 
-    @Autowired
-    private IncidentRepository incidentRepository;
+    private final IncidentRepository incidentRepository;
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public EvidenceResponse uploadEvidence(EvidenceRequest request, Long userId, UserRole userRole) {
@@ -202,3 +199,4 @@ public class EvidenceService {
         return response;
     }
 }
+

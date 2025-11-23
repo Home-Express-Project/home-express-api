@@ -10,7 +10,6 @@ import com.homeexpress.home_express_api.entity.UserRole;
 import com.homeexpress.home_express_api.repository.BookingSettlementRepository;
 import com.homeexpress.home_express_api.repository.UserRepository;
 import com.homeexpress.home_express_api.util.AuthenticationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -25,16 +24,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/transport/settlements")
 public class TransportSettlementController {
 
-    @Autowired
-    private BookingSettlementRepository settlementRepository;
+    private final BookingSettlementRepository settlementRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<?> getMySettlements(
@@ -203,3 +202,4 @@ public class TransportSettlementController {
         return dto;
     }
 }
+

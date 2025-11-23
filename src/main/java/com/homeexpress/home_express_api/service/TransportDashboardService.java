@@ -12,7 +12,6 @@ import com.homeexpress.home_express_api.repository.BookingRepository;
 import com.homeexpress.home_express_api.repository.CustomerRepository;
 import com.homeexpress.home_express_api.repository.QuotationRepository;
 import com.homeexpress.home_express_api.repository.TransportRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,23 +31,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class TransportDashboardService {
 
     private static final int DEFAULT_MONTH_WINDOW = 6;
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
-    @Autowired
-    private QuotationRepository quotationRepository;
+    private final QuotationRepository quotationRepository;
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
     
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
     @Transactional(readOnly = true)
     public TransportDashboardStatsResponse getDashboardStats(Long transportId) {
@@ -248,4 +245,5 @@ public class TransportDashboardService {
                 .doubleValue();
     }
 }
+
 

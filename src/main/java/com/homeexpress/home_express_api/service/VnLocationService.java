@@ -31,11 +31,11 @@ public class VnLocationService {
     }
 
     public List<ProvinceDto> getAllProvinces() {
-        return provinceRepository.findAllByOrderByProvinceNameAsc()
+        return provinceRepository.findAllByOrderByNameAsc()
                 .stream()
                 .map(province -> new ProvinceDto(
-                        province.getProvinceCode(),
-                        province.getProvinceName()))
+                        province.getCode(),
+                        province.getName()))
                 .collect(Collectors.toList());
     }
 
@@ -45,11 +45,11 @@ public class VnLocationService {
             throw new ResourceNotFoundException("Tỉnh/Thành phố", "mã", trimmedCode);
         }
 
-        return districtRepository.findByProvinceCodeOrderByDistrictNameAsc(trimmedCode)
+        return districtRepository.findByProvinceCodeOrderByNameAsc(trimmedCode)
                 .stream()
                 .map(district -> new DistrictDto(
-                        district.getDistrictCode(),
-                        district.getDistrictName(),
+                        district.getCode(),
+                        district.getName(),
                         district.getProvinceCode()))
                 .collect(Collectors.toList());
     }
@@ -60,11 +60,11 @@ public class VnLocationService {
             throw new ResourceNotFoundException("Quận/Huyện", "mã", trimmedCode);
         }
 
-        return wardRepository.findByDistrictCodeOrderByWardNameAsc(trimmedCode)
+        return wardRepository.findByDistrictCodeOrderByNameAsc(trimmedCode)
                 .stream()
                 .map(ward -> new WardDto(
-                        ward.getWardCode(),
-                        ward.getWardName(),
+                        ward.getCode(),
+                        ward.getName(),
                         ward.getDistrictCode()))
                 .collect(Collectors.toList());
     }

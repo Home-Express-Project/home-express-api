@@ -10,28 +10,25 @@ import com.homeexpress.home_express_api.repository.CategoryPricingRepository;
 import com.homeexpress.home_express_api.repository.CategoryRepository;
 import com.homeexpress.home_express_api.repository.SizeRepository;
 import com.homeexpress.home_express_api.repository.TransportRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class CategoryPricingService {
 
-    @Autowired
-    private CategoryPricingRepository categoryPricingRepository;
+    private final CategoryPricingRepository categoryPricingRepository;
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-    @Autowired
-    private SizeRepository sizeRepository;
+    private final SizeRepository sizeRepository;
 
     @Transactional
     public CategoryPricingResponse createCategoryPricing(CategoryPricingRequest request) {
@@ -180,3 +177,4 @@ public class CategoryPricingService {
         categoryPricingRepository.save(pricing);
     }
 }
+

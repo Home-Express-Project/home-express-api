@@ -1,6 +1,5 @@
 package com.homeexpress.home_express_api.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,19 +31,18 @@ import java.util.Map;
 import java.util.HashMap;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private FileStorageService fileStorageService;
+    private final FileStorageService fileStorageService;
 
     // Lấy danh sách users - chỉ MANAGER được xem
     @GetMapping
@@ -140,3 +138,4 @@ public class UserController {
         return AuthenticationUtils.getUser(authentication, userRepository).getUserId();
     }
 }
+

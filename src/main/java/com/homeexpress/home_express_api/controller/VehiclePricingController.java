@@ -6,7 +6,6 @@ import com.homeexpress.home_express_api.dto.response.VehiclePricingListResponse;
 import com.homeexpress.home_express_api.dto.response.VehiclePricingResponse;
 import com.homeexpress.home_express_api.service.VehiclePricingService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,13 +13,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/transport/pricing/vehicles")
 public class VehiclePricingController {
 
-    @Autowired
-    private VehiclePricingService vehiclePricingService;
+    private final VehiclePricingService vehiclePricingService;
 
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
@@ -111,3 +111,4 @@ public class VehiclePricingController {
         }
     }
 }
+

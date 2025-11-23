@@ -5,7 +5,6 @@ import com.homeexpress.home_express_api.entity.UserRole;
 import com.homeexpress.home_express_api.entity.UserSession;
 import com.homeexpress.home_express_api.service.AdminUserService;
 import com.homeexpress.home_express_api.service.UserSessionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,16 +13,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/admin/users")
 public class AdminUsersController {
 
-    @Autowired
-    private AdminUserService adminUserService;
+    private final AdminUserService adminUserService;
     
-    @Autowired
-    private UserSessionService userSessionService;
+    private final UserSessionService userSessionService;
 
     /**
      * Get all users with profiles and pagination
@@ -179,3 +178,4 @@ public class AdminUsersController {
         return ResponseEntity.ok(response);
     }
 }
+

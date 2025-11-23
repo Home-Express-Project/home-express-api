@@ -9,25 +9,23 @@ import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
 import com.homeexpress.home_express_api.repository.CategoryRepository;
 import com.homeexpress.home_express_api.repository.SizeRepository;
 import com.homeexpress.home_express_api.repository.BookingItemRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class CategoryService {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
-    @Autowired
-    private SizeRepository sizeRepository;
+    private final SizeRepository sizeRepository;
 
-    @Autowired
-    private BookingItemRepository bookingItemRepository;
+    private final BookingItemRepository bookingItemRepository;
 
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
@@ -157,3 +155,4 @@ public class CategoryService {
         return result;
     }
 }
+

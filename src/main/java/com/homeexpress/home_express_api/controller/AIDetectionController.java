@@ -7,13 +7,13 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 /**
  * REST API Controller for AI Image Detection
@@ -21,6 +21,7 @@ import java.util.Map;
  * Endpoints:
  * - POST /api/ai/detect-items - Detect items from images
  */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/ai")
 public class AIDetectionController {
@@ -28,11 +29,6 @@ public class AIDetectionController {
     private static final Logger log = LoggerFactory.getLogger(AIDetectionController.class);
 
     private final AIDetectionOrchestrator detectionOrchestrator;
-
-    @Autowired
-    public AIDetectionController(AIDetectionOrchestrator detectionOrchestrator) {
-        this.detectionOrchestrator = detectionOrchestrator;
-    }
 
     /**
      * Detect items from images using AI approach
@@ -144,3 +140,4 @@ public class AIDetectionController {
         }
     }
 }
+

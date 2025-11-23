@@ -2186,3 +2186,54 @@ java.lang.RuntimeException: API Error
 2025-11-22T23:08:01.956+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /v3/api-docs
 2025-11-22T23:08:05.086+07:00  INFO 38536 --- [home-express-api] [http-nio-8084-exec-9] o.springdoc.api.AbstractOpenApiResource  : Init duration for springdoc-openapi is: 3102 ms
 2025-11-22T23:08:05.131+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-9] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:43:44.064+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-1] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/v1/locations/provinces
+2025-11-22T23:43:44.080+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /api/v1/locations/provinces
+2025-11-22T23:43:44.082+07:00  INFO 38536 --- [home-express-api] [http-nio-8084-exec-2] c.h.h.config.JwtAuthenticationFilter     : JWT extracted: FOUND
+2025-11-22T23:43:44.133+07:00 ERROR 38536 --- [home-express-api] [http-nio-8084-exec-2] c.h.h.config.JwtAuthenticationFilter     : JWT is INVALID
+2025-11-22T23:43:44.134+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-2] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:43:44.153+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-2] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/api/v1/locations/provinces?continue to session
+2025-11-22T23:43:44.154+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-2] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2025-11-22T23:43:44.161+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /error
+2025-11-22T23:43:44.161+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-2] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:43:44.162+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-2] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/error?continue to session
+2025-11-22T23:43:44.162+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-2] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2025-11-22T23:43:49.173+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /api/v1/locations/provinces
+2025-11-22T23:43:49.174+07:00  INFO 38536 --- [home-express-api] [http-nio-8084-exec-4] c.h.h.config.JwtAuthenticationFilter     : JWT extracted: FOUND
+2025-11-22T23:43:49.175+07:00 ERROR 38536 --- [home-express-api] [http-nio-8084-exec-4] c.h.h.config.JwtAuthenticationFilter     : JWT is INVALID
+2025-11-22T23:43:49.175+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:43:49.177+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-4] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/api/v1/locations/provinces?continue to session
+2025-11-22T23:43:49.177+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-4] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2025-11-22T23:43:49.178+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /error
+2025-11-22T23:43:49.179+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:43:49.180+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-4] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/error?continue to session
+2025-11-22T23:43:49.180+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-4] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2025-11-22T23:44:15.177+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/v1/locations/provinces
+2025-11-22T23:44:15.178+07:00  INFO 38536 --- [home-express-api] [http-nio-8084-exec-3] c.h.h.config.JwtAuthenticationFilter     : JWT extracted: FOUND
+2025-11-22T23:44:15.179+07:00 ERROR 38536 --- [home-express-api] [http-nio-8084-exec-3] c.h.h.config.JwtAuthenticationFilter     : JWT is INVALID
+2025-11-22T23:44:15.179+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:44:15.180+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-3] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/api/v1/locations/provinces?continue to session
+2025-11-22T23:44:15.180+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-3] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2025-11-22T23:44:15.181+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /error
+2025-11-22T23:44:15.182+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:44:15.182+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-3] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/error?continue to session
+2025-11-22T23:44:15.182+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-3] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2025-11-22T23:44:19.498+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /api/v1/locations/provinces
+2025-11-22T23:44:19.498+07:00  INFO 38536 --- [home-express-api] [http-nio-8084-exec-6] c.h.h.config.JwtAuthenticationFilter     : JWT extracted: FOUND
+2025-11-22T23:44:19.499+07:00 ERROR 38536 --- [home-express-api] [http-nio-8084-exec-6] c.h.h.config.JwtAuthenticationFilter     : JWT is INVALID
+2025-11-22T23:44:19.499+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-6] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:44:19.501+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-6] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/api/v1/locations/provinces?continue to session
+2025-11-22T23:44:19.501+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-6] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2025-11-22T23:44:19.502+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /error
+2025-11-22T23:44:19.503+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-6] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:44:19.504+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-6] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/error?continue to session
+2025-11-22T23:44:19.504+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-6] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2025-11-22T23:44:25.178+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /api/v1/locations/provinces
+2025-11-22T23:44:25.179+07:00  INFO 38536 --- [home-express-api] [http-nio-8084-exec-5] c.h.h.config.JwtAuthenticationFilter     : JWT extracted: FOUND
+2025-11-22T23:44:25.180+07:00 ERROR 38536 --- [home-express-api] [http-nio-8084-exec-5] c.h.h.config.JwtAuthenticationFilter     : JWT is INVALID
+2025-11-22T23:44:25.181+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-5] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:44:25.181+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-5] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/api/v1/locations/provinces?continue to session
+2025-11-22T23:44:25.181+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-5] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2025-11-22T23:44:25.183+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /error
+2025-11-22T23:44:25.184+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-5] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2025-11-22T23:44:25.184+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-5] o.s.s.w.s.HttpSessionRequestCache        : Saved request http://localhost:8084/error?continue to session
+2025-11-22T23:44:25.185+07:00 DEBUG 38536 --- [home-express-api] [http-nio-8084-exec-5] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access

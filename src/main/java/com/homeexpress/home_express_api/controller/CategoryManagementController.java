@@ -6,7 +6,6 @@ import com.homeexpress.home_express_api.entity.Category;
 import com.homeexpress.home_express_api.entity.Size;
 import com.homeexpress.home_express_api.service.CategoryService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,13 +14,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/admin/categories")
 public class CategoryManagementController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
@@ -115,3 +115,4 @@ public class CategoryManagementController {
         return ResponseEntity.ok(response);
     }
 }
+

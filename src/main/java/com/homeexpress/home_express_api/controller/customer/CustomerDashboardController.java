@@ -7,7 +7,6 @@ import com.homeexpress.home_express_api.entity.UserRole;
 import com.homeexpress.home_express_api.service.BookingService;
 import com.homeexpress.home_express_api.service.CustomerDashboardService;
 import com.homeexpress.home_express_api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,19 +23,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.homeexpress.home_express_api.util.AuthenticationUtils;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/customer")
 public class CustomerDashboardController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private BookingService bookingService;
+    private final BookingService bookingService;
 
-    @Autowired
-    private CustomerDashboardService customerDashboardService;
+    private final CustomerDashboardService customerDashboardService;
 
     @GetMapping("/dashboard/stats")
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -95,3 +93,4 @@ public class CustomerDashboardController {
         return user;
     }
 }
+

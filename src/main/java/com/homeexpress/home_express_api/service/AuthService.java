@@ -8,14 +8,15 @@ import com.homeexpress.home_express_api.dto.response.UserResponse;
 import com.homeexpress.home_express_api.entity.*;
 import com.homeexpress.home_express_api.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 @Transactional
 public class AuthService {
@@ -26,29 +27,21 @@ public class AuthService {
     // - LoginAttemptService (rate limiting)
     // - Email normalization
     
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
     
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
     
-    @Autowired
-    private ManagerRepository managerRepository;
+    private final ManagerRepository managerRepository;
     
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
     
-    @Autowired
-    private UserSessionService sessionService;
+    private final UserSessionService sessionService;
     
-    @Autowired
-    private HttpServletRequest httpRequest; // de lay IP, user agent
+    private final HttpServletRequest httpRequest; // de lay IP, user agent
     
     // register user moi
     public AuthResponse register(RegisterRequest request) {
@@ -245,3 +238,4 @@ public class AuthService {
         return httpRequest.getHeader("User-Agent");
     }
 }
+

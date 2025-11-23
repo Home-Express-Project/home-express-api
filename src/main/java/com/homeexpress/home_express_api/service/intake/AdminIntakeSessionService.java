@@ -12,6 +12,7 @@ import com.homeexpress.home_express_api.dto.booking.BookingResponse;
 import com.homeexpress.home_express_api.entity.IntakeSession;
 import com.homeexpress.home_express_api.entity.IntakeSessionItem;
 import com.homeexpress.home_express_api.entity.User;
+import com.homeexpress.home_express_api.entity.UserRole;
 import com.homeexpress.home_express_api.repository.IntakeSessionRepository;
 import com.homeexpress.home_express_api.repository.IntakeSessionItemRepository;
 import com.homeexpress.home_express_api.repository.UserRepository;
@@ -207,7 +208,7 @@ public class AdminIntakeSessionService {
         }
 
         BookingRequest bookingRequest = buildBookingRequest(session, publishRequest);
-        BookingResponse booking = bookingService.createBooking(bookingRequest, session.getUser().getUserId());
+        BookingResponse booking = bookingService.createBooking(bookingRequest, session.getUser().getUserId(), UserRole.MANAGER);
 
         LocalDateTime publishedAt = LocalDateTime.now();
         LocalDateTime biddingExpiresAt = determineExpiry(publishRequest.getExpiresInHours(), publishedAt);
@@ -511,4 +512,3 @@ public class AdminIntakeSessionService {
         private String customerAvatar;
     }
 }
-

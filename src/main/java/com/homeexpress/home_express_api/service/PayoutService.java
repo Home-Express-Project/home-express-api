@@ -25,36 +25,31 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service for managing transport payouts and settlements.
  * Handles batch payout creation, status updates, and payout queries.
  */
+@RequiredArgsConstructor
 @Service
 public class PayoutService {
 
     private static final Logger log = LoggerFactory.getLogger(PayoutService.class);
 
-    @Autowired
-    private TransportPayoutRepository payoutRepository;
+    private final TransportPayoutRepository payoutRepository;
 
-    @Autowired
-    private TransportPayoutItemRepository payoutItemRepository;
+    private final TransportPayoutItemRepository payoutItemRepository;
 
-    @Autowired
-    private BookingSettlementRepository settlementRepository;
+    private final BookingSettlementRepository settlementRepository;
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
-    @Autowired
-    private WalletService walletService;
+    private final WalletService walletService;
 
-    @Autowired
-    private ExternalPayoutGateway externalPayoutGateway;
+    private final ExternalPayoutGateway externalPayoutGateway;
 
     /**
      * Creates a payout batch for a specific transport from all READY settlements.
@@ -407,3 +402,4 @@ public class PayoutService {
                 null);
     }
 }
+

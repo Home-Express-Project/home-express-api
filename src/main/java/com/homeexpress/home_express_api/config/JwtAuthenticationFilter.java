@@ -1,15 +1,12 @@
 package com.homeexpress.home_express_api.config;
 
-import com.homeexpress.home_express_api.entity.Customer;
-import com.homeexpress.home_express_api.entity.Transport;
-import com.homeexpress.home_express_api.repository.CustomerRepository;
-import com.homeexpress.home_express_api.repository.TransportRepository;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,22 +18,18 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // NOTE: filter nay chay moi request de extract JWT token tu header
     // neu valid thi set SecurityContext de Spring Security biet user da login
-    
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-    
-    @Autowired
-    private CustomerRepository customerRepository;
-    
-    @Autowired
-    private TransportRepository transportRepository;
+
+    private final JwtTokenProvider jwtTokenProvider;
+
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, 
@@ -50,28 +43,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             
             // 2. neu co token va valid
             if (StringUtils.hasText(jwt)) {
-                if (jwtTokenProvider.validateToken(jwt)) {
-                    logger.info("JWT is VALID");
-                    // 3. extract user info tu token
-                    Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
-                    String role = jwtTokenProvider.getRoleFromToken(jwt);
+                if (SecurityContextHolder.getContext().getAuthentication() != null) {
+                    logger.debug("SecurityContext already contains authentication, skipping JWT processing");
+                } else {
+                    Claims claims = jwtTokenProvider.getClaims(jwt);
+                    Long userId = Long.parseLong(claims.getSubject());
+                    String role = claims.get("role", String.class);
+                    String email = claims.get("email", String.class);
                     logger.info("User ID: " + userId + ", Role: " + role);
-                    
-                    // 4. load user entity based on role
-                    Object principal = userId; // default to userId
-                    
-                    if ("CUSTOMER".equals(role)) {
-                        Optional<Customer> customerOpt = customerRepository.findByUser_UserId(userId);
-                        if (customerOpt.isPresent()) {
-                            principal = customerOpt.get();
-                        }
-                    } else if ("TRANSPORT".equals(role)) {
-                        Optional<Transport> transportOpt = transportRepository.findByUser_UserId(userId);
-                        if (transportOpt.isPresent()) {
-                            principal = transportOpt.get();
-                        }
-                    }
-                    
+
+                    JwtAuthenticatedUser principal = new JwtAuthenticatedUser(userId, email, role);
+
                     // 5. tao Authentication object
                     // chu y: authorities phai co prefix "ROLE_" de Spring Security nhan dang
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
@@ -84,12 +66,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // 7. set vao SecurityContext - tu day Spring Security biet user da login
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     logger.info("Authentication set in SecurityContext");
-                } else {
-                    logger.error("JWT is INVALID");
                 }
             } else {
                 logger.info("No JWT found in request");
             }
+        } catch (JwtException | IllegalArgumentException ex) {
+            logger.error("JWT is INVALID", ex);
         } catch (Exception ex) {
             // log loi nhung ko throw - de request tiep tuc
             // neu token invalid thi cu de 401 Unauthorized tu security config

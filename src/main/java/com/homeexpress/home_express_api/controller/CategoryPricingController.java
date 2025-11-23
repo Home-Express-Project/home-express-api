@@ -6,7 +6,6 @@ import com.homeexpress.home_express_api.dto.response.CategoryPricingListResponse
 import com.homeexpress.home_express_api.dto.response.CategoryPricingResponse;
 import com.homeexpress.home_express_api.service.CategoryPricingService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,13 +13,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/transport/pricing/categories")
 public class CategoryPricingController {
 
-    @Autowired
-    private CategoryPricingService categoryPricingService;
+    private final CategoryPricingService categoryPricingService;
 
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
@@ -113,3 +113,4 @@ public class CategoryPricingController {
         }
     }
 }
+

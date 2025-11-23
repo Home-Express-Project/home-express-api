@@ -7,7 +7,6 @@ import com.homeexpress.home_express_api.entity.UserRole;
 import com.homeexpress.home_express_api.entity.VerificationStatus;
 import com.homeexpress.home_express_api.repository.TransportRepository;
 import com.homeexpress.home_express_api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,15 +17,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class DashboardService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
     public AdminDashboardStatsResponse getAdminDashboardStats() {
         AdminDashboardStatsResponse stats = new AdminDashboardStatsResponse();
@@ -121,4 +120,5 @@ public class DashboardService {
         return summary;
     }
 }
+
 

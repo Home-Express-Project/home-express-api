@@ -7,20 +7,19 @@ import com.homeexpress.home_express_api.entity.TransportSettings;
 import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
 import com.homeexpress.home_express_api.repository.TransportRepository;
 import com.homeexpress.home_express_api.repository.TransportSettingsRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class TransportSettingsService {
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
-    @Autowired
-    private TransportSettingsRepository transportSettingsRepository;
+    private final TransportSettingsRepository transportSettingsRepository;
 
     @Transactional(readOnly = true)
     public TransportSettingsResponse getSettings(Long transportId) {
@@ -112,3 +111,4 @@ public class TransportSettingsService {
         return response;
     }
 }
+

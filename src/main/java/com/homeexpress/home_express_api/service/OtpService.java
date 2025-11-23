@@ -2,22 +2,21 @@ package com.homeexpress.home_express_api.service;
 
 import com.homeexpress.home_express_api.entity.OtpCode;
 import com.homeexpress.home_express_api.repository.OtpRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Random;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 @Transactional
 public class OtpService {
 
-    @Autowired
-    private OtpRepository otpRepository;
+    private final OtpRepository otpRepository;
 
-    @Autowired
-    private EmailService emailService;
+    private final EmailService emailService;
 
     // Generate OTP 6 chu so
     public String generateOtp() {
@@ -65,3 +64,4 @@ public class OtpService {
         otpRepository.deleteByExpiresAtBefore(LocalDateTime.now());
     }
 }
+

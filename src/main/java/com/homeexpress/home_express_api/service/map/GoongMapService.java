@@ -1,7 +1,6 @@
 package com.homeexpress.home_express_api.service.map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.homeexpress.home_express_api.dto.location.MapPlaceDTO;
 import com.homeexpress.home_express_api.repository.VnDistrictRepository;
 import com.homeexpress.home_express_api.repository.VnProvinceRepository;
@@ -11,9 +10,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,23 +65,26 @@ public class GoongMapService implements MapService {
 
             if (response != null && response.has("predictions")) {
                 for (JsonNode prediction : response.get("predictions")) {
-                    String description = prediction.get("description").asText();
-                    
-                    // Filter out bad results containing URLs
+                    String description = prediction.path("description").asText("");
+
+                    if (!StringUtils.hasText(description)) {
+                        continue;
+                    }
                     if (description.contains("http://") || description.contains("https://")) {
                         continue;
                     }
 
+                    JsonNode formatting = prediction.path("structured_formatting");
                     results.add(MapPlaceDTO.builder()
-                            .placeId(prediction.get("place_id").asText())
+                            .placeId(prediction.path("place_id").asText(""))
                             .description(description)
-                            .mainText(prediction.get("structured_formatting").get("main_text").asText())
-                            .secondaryText(prediction.path("structured_formatting").path("secondary_text").asText(""))
+                            .mainText(formatting.path("main_text").asText(""))
+                            .secondaryText(formatting.path("secondary_text").asText(""))
                             .build());
                 }
             }
             return results;
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             log.error("Error calling Goong Autocomplete API", e);
             return List.of();
         }
@@ -96,24 +100,23 @@ public class GoongMapService implements MapService {
 
             JsonNode response = restTemplate.getForObject(url, JsonNode.class);
             if (response != null && response.has("result")) {
-                JsonNode result = response.get("result");
-                JsonNode location = result.get("geometry").get("location");
-                
+                JsonNode result = response.path("result");
+                JsonNode location = result.path("geometry").path("location");
+
                 MapPlaceDTO dto = MapPlaceDTO.builder()
-                        .placeId(result.get("place_id").asText())
-                        .description(result.get("formatted_address").asText())
-                        .latitude(location.get("lat").asDouble())
-                        .longitude(location.get("lng").asDouble())
+                        .placeId(result.path("place_id").asText(""))
+                        .description(result.path("formatted_address").asText(""))
+                        .latitude(location.path("lat").asDouble())
+                        .longitude(location.path("lng").asDouble())
                         .build();
 
-                // Resolve compound address to codes
                 if (result.has("compound")) {
                     resolveLocationCodes(dto, result.get("compound"));
                 }
 
                 return dto;
             }
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             log.error("Error calling Goong Detail API", e);
         }
         return null;
@@ -130,24 +133,24 @@ public class GoongMapService implements MapService {
 
             JsonNode response = restTemplate.getForObject(url, JsonNode.class);
             if (response != null && response.has("results")) {
-                JsonNode firstResult = response.get("results").get(0);
-                if (firstResult != null) {
+                JsonNode results = response.path("results");
+                if (results.isArray() && results.size() > 0) {
+                    JsonNode firstResult = results.get(0);
                     MapPlaceDTO dto = MapPlaceDTO.builder()
-                            .placeId(firstResult.get("place_id").asText())
-                            .description(firstResult.get("formatted_address").asText())
+                            .placeId(firstResult.path("place_id").asText(""))
+                            .description(firstResult.path("formatted_address").asText(""))
                             .latitude(lat)
                             .longitude(lng)
                             .build();
-                    
-                     // Resolve compound address to codes if available
+
                     if (firstResult.has("compound")) {
                         resolveLocationCodes(dto, firstResult.get("compound"));
                     }
-                    
+
                     return dto;
                 }
             }
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             log.error("Error calling Goong Geocode API", e);
         }
         return null;
@@ -163,25 +166,31 @@ public class GoongMapService implements MapService {
                     .queryParam("api_key", apiKey)
                     .queryParam("origins", origins)
                     .queryParam("destinations", destinations)
-                    .queryParam("vehicle", "car") // Goong supports 'car', 'bike', 'taxi', 'truck'
+                    .queryParam("vehicle", "car")
                     .toUriString();
 
             JsonNode response = restTemplate.getForObject(url, JsonNode.class);
             if (response != null && response.has("rows")) {
-                JsonNode element = response.get("rows").get(0).get("elements").get(0);
-                if ("OK".equals(element.get("status").asText())) {
-                    return element.get("distance").get("value").asLong();
+                JsonNode rows = response.path("rows");
+                if (rows.isArray() && rows.size() > 0) {
+                    JsonNode elements = rows.get(0).path("elements");
+                    if (elements.isArray() && elements.size() > 0) {
+                        JsonNode element = elements.get(0);
+                        if ("OK".equals(element.path("status").asText())
+                                && element.path("distance").has("value")) {
+                            return element.path("distance").path("value").asLong();
+                        }
+                    }
                 }
             }
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             log.error("Error calling Goong DistanceMatrix API", e);
         }
-        // Fallback: Calculate Haversine distance if API fails
         return calculateHaversineDistance(originLat, originLng, destLat, destLng);
     }
 
     private long calculateHaversineDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371000; // Radius of the earth in meters
+        final int R = 6371000;
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
@@ -190,45 +199,45 @@ public class GoongMapService implements MapService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return (long) (R * c);
     }
-    
+
     private void resolveLocationCodes(MapPlaceDTO dto, JsonNode compound) {
         try {
-            // 1. Resolve Province
             String provinceName = compound.path("province").asText();
             if (StringUtils.hasText(provinceName)) {
                 String normalizedProvince = normalizeLocationName(provinceName);
-                provinceRepository.findFirstByProvinceNameContainingIgnoreCase(normalizedProvince)
+                provinceRepository.findFirstByNameContainingIgnoreCase(normalizedProvince)
                     .ifPresent(province -> {
-                        dto.setProvinceCode(province.getProvinceCode());
-                        
-                        // 2. Resolve District (only if province found)
+                        dto.setProvinceCode(province.getCode());
+
                         String districtName = compound.path("district").asText();
                         if (StringUtils.hasText(districtName)) {
                             String normalizedDistrict = normalizeLocationName(districtName);
-                            districtRepository.findFirstByDistrictNameContainingIgnoreCaseAndProvinceCode(normalizedDistrict, province.getProvinceCode())
+                            districtRepository.findFirstByNameContainingIgnoreCaseAndProvinceCode(normalizedDistrict, province.getCode())
                                 .ifPresent(district -> {
-                                    dto.setDistrictCode(district.getDistrictCode());
-                                    
-                                    // 3. Resolve Ward (only if district found)
+                                    dto.setDistrictCode(district.getCode());
+
                                     String wardName = compound.path("commune").asText();
                                     if (StringUtils.hasText(wardName)) {
                                         String normalizedWard = normalizeLocationName(wardName);
-                                        wardRepository.findFirstByWardNameContainingIgnoreCaseAndDistrictCode(normalizedWard, district.getDistrictCode())
-                                            .ifPresent(ward -> dto.setWardCode(ward.getWardCode()));
+                                        wardRepository.findFirstByNameContainingIgnoreCaseAndDistrictCode(normalizedWard, district.getCode())
+                                            .ifPresent(ward -> dto.setWardCode(ward.getCode()));
                                     }
                                 });
                         }
                     });
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("Error resolving location codes from compound: {}", compound, e);
         }
     }
-    
+
     private String normalizeLocationName(String name) {
-        if (name == null) return "";
-        // Remove common prefixes to improve matching
-        String normalized = name.replaceAll("^(Tỉnh|Thành phố|Thành Phố|Quận|Huyện|Thị xã|Thị Xã|Phường|Xã|Thị trấn|Thị Trấn)\\s+", "");
+        if (!StringUtils.hasText(name)) {
+            return "";
+        }
+        String sanitized = Normalizer.normalize(name, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "");
+        String normalized = sanitized.replaceAll("^(?i)(tinh|thanh pho|quan|huyen|thi xa|phuong|xa|thi tran)\\s+", "");
         return normalized.trim();
     }
 }

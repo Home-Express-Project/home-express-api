@@ -9,7 +9,6 @@ import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
 import com.homeexpress.home_express_api.exception.UnauthorizedException;
 import com.homeexpress.home_express_api.repository.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,31 +16,27 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service for managing counter-offers in price negotiation
  */
+@RequiredArgsConstructor
 @Slf4j
 @Service
 public class CounterOfferService {
 
-    @Autowired
-    private CounterOfferRepository counterOfferRepository;
+    private final CounterOfferRepository counterOfferRepository;
 
-    @Autowired
-    private QuotationRepository quotationRepository;
+    private final QuotationRepository quotationRepository;
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
-    @Autowired
-    private CustomerEventService customerEventService;
+    private final CustomerEventService customerEventService;
 
     /**
      * Create a new counter-offer
@@ -312,4 +307,5 @@ public class CounterOfferService {
         }
     }
 }
+
 

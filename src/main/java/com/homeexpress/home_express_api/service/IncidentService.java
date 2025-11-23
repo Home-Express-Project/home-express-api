@@ -8,22 +8,21 @@ import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
 import com.homeexpress.home_express_api.exception.UnauthorizedException;
 import com.homeexpress.home_express_api.repository.BookingRepository;
 import com.homeexpress.home_express_api.repository.IncidentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class IncidentService {
 
-    @Autowired
-    private IncidentRepository incidentRepository;
+    private final IncidentRepository incidentRepository;
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
     @Transactional
     public IncidentResponse createIncident(IncidentRequest request, Long reporterUserId, UserRole reporterRole) {
@@ -157,3 +156,4 @@ public class IncidentService {
         return IncidentResponse.fromEntity(updatedIncident);
     }
 }
+

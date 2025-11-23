@@ -7,18 +7,17 @@ import com.homeexpress.home_express_api.entity.CustomerSettings;
 import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
 import com.homeexpress.home_express_api.repository.CustomerRepository;
 import com.homeexpress.home_express_api.repository.CustomerSettingsRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class CustomerSettingsService {
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;
 
-    @Autowired
-    private CustomerSettingsRepository customerSettingsRepository;
+    private final CustomerSettingsRepository customerSettingsRepository;
 
     @Transactional(readOnly = true)
     public CustomerSettingsResponse getSettings(Long customerId) {
@@ -86,4 +85,5 @@ public class CustomerSettingsService {
         return response;
     }
 }
+
 

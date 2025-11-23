@@ -1,15 +1,15 @@
 package com.homeexpress.home_express_api.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
     // Gui email OTP
     public void sendOtpEmail(String toEmail, String otpCode) {
@@ -33,3 +33,4 @@ public class EmailService {
         }
     }
 }
+

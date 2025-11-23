@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/transport")
 @Validated
@@ -36,14 +37,11 @@ public class TransportDashboardController {
 
     private static final int MAX_QUOTATION_LIMIT = 50;
 
-    @Autowired
-    private TransportDashboardService dashboardService;
+    private final TransportDashboardService dashboardService;
 
-    @Autowired
-    private QuotationService quotationService;
+    private final QuotationService quotationService;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @GetMapping("/dashboard/stats")
     @PreAuthorize("hasRole('TRANSPORT')")
@@ -100,4 +98,5 @@ public class TransportDashboardController {
                 .body(Map.of("error", "Only transport accounts can access this resource"));
     }
 }
+
 

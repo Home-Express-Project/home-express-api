@@ -1,5 +1,6 @@
 package com.homeexpress.home_express_api.util;
 
+import com.homeexpress.home_express_api.config.JwtAuthenticatedUser;
 import com.homeexpress.home_express_api.entity.Customer;
 import com.homeexpress.home_express_api.entity.Transport;
 import com.homeexpress.home_express_api.entity.User;
@@ -32,6 +33,10 @@ public final class AuthenticationUtils {
         }
 
         Object principal = authentication.getPrincipal();
+        if (principal instanceof JwtAuthenticatedUser jwtUser) {
+            return jwtUser.getUserId();
+        }
+
         if (principal instanceof Long id) {
             return id;
         }

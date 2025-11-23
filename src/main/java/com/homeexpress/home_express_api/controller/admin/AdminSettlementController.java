@@ -6,7 +6,6 @@ import com.homeexpress.home_express_api.dto.admin.SettlementReviewRequest;
 import com.homeexpress.home_express_api.entity.SettlementStatus;
 import com.homeexpress.home_express_api.service.SettlementService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -17,13 +16,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/admin/settlements")
 public class AdminSettlementController {
 
-    @Autowired
-    private SettlementService settlementService;
+    private final SettlementService settlementService;
 
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
@@ -121,3 +121,4 @@ public class AdminSettlementController {
         return ResponseEntity.ok(response);
     }
 }
+

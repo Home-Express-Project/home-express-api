@@ -35,22 +35,14 @@ public class JwtTokenProvider {
 
     // Lay user ID tu token
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
+        Claims claims = getClaims(token);
         return Long.parseLong(claims.getSubject());
     }
 
     // Validate token
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(secretKey)
-                    .build()
-                    .parseSignedClaims(token);
+            getClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
@@ -82,13 +74,23 @@ public class JwtTokenProvider {
 
     // Get role from token
     public String getRoleFromToken(String token) {
-        Claims claims = Jwts.parser()
+        Claims claims = getClaims(token);
+        return claims.get("role", String.class);
+    }
+
+    // Get email from token
+    public String getEmailFromToken(String token) {
+        Claims claims = getClaims(token);
+        return claims.get("email", String.class);
+    }
+
+    // Extract all claims from token
+    public Claims getClaims(String token) {
+        return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
-        return claims.get("role", String.class);
     }
 
     // Get token type

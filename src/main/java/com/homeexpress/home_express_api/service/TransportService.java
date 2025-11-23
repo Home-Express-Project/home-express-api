@@ -7,7 +7,6 @@ import com.homeexpress.home_express_api.entity.VerificationStatus;
 import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
 import com.homeexpress.home_express_api.repository.TransportRepository;
 import com.homeexpress.home_express_api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,18 +16,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class TransportService {
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     
-    @Autowired
-    private NotificationService notificationService;
+    private final NotificationService notificationService;
 
     public List<Transport> getAllTransports() {
         return transportRepository.findAll(Sort.by("createdAt").descending());
@@ -108,3 +106,4 @@ public class TransportService {
         return savedTransport;
     }
 }
+

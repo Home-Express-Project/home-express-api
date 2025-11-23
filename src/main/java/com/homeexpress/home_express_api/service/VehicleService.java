@@ -9,7 +9,6 @@ import com.homeexpress.home_express_api.exception.UnauthorizedException;
 import com.homeexpress.home_express_api.repository.TransportRepository;
 import com.homeexpress.home_express_api.repository.UserRepository;
 import com.homeexpress.home_express_api.repository.VehicleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,20 +16,19 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class VehicleService {
 
     private static final Pattern VN_LICENSE_PLATE_PATTERN = Pattern.compile("^[0-9]{2}[A-Z]{1,3}[0-9]{4,6}$");
 
-    @Autowired
-    private VehicleRepository vehicleRepository;
+    private final VehicleRepository vehicleRepository;
 
-    @Autowired
-    private TransportRepository transportRepository;
+    private final TransportRepository transportRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     public String normalizeLicensePlate(String licensePlate) {
         if (licensePlate == null) {
@@ -267,3 +265,4 @@ public class VehicleService {
                 .collect(Collectors.toList());
     }
 }
+

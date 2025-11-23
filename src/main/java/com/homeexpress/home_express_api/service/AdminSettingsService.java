@@ -7,18 +7,17 @@ import com.homeexpress.home_express_api.entity.Manager;
 import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
 import com.homeexpress.home_express_api.repository.AdminSettingsRepository;
 import com.homeexpress.home_express_api.repository.ManagerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class AdminSettingsService {
 
-    @Autowired
-    private ManagerRepository managerRepository;
+    private final ManagerRepository managerRepository;
 
-    @Autowired
-    private AdminSettingsRepository adminSettingsRepository;
+    private final AdminSettingsRepository adminSettingsRepository;
 
     @Transactional(readOnly = true)
     public AdminSettingsResponse getSettings(Long managerId) {
@@ -139,4 +138,5 @@ public class AdminSettingsService {
         return response;
     }
 }
+
 

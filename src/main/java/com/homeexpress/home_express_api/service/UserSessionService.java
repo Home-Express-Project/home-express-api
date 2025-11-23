@@ -8,7 +8,6 @@ import com.homeexpress.home_express_api.repository.UserRepository;
 import com.homeexpress.home_express_api.repository.UserSessionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +18,9 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 @Transactional
 public class UserSessionService {
@@ -30,17 +31,13 @@ public class UserSessionService {
     // luu SHA-256 hash trong DB thay vi plaintext
     // support revocation (logout, security breach, change password)
     
-    @Autowired
-    private UserSessionRepository sessionRepository;
+    private final UserSessionRepository sessionRepository;
     
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
     
-    @Autowired
-    private SecurityConfigProperties securityConfig;
+    private final SecurityConfigProperties securityConfig;
     
     // tao session moi khi login
     public UserSession createSession(User user, String ipAddress, String userAgent, String deviceId) {
@@ -161,3 +158,4 @@ public class UserSessionService {
         }
     }
 }
+
