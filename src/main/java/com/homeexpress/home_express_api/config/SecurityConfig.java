@@ -56,7 +56,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Cho phep tat ca OPTIONS requests (CORS preflight)
                 .requestMatchers("/api/v1/auth/**").permitAll() // Cho phep truy cap cac endpoint auth khong can login
+                .requestMatchers("/api/v1/locations/**").permitAll() // Cho phep truy cap location api
                 .requestMatchers("/api/v1/map/**").permitAll() // Cho phep truy cap map api (autocomplete)
+                .requestMatchers("/uploads/**").permitAll() // Cho phep truy cap file upload
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()
                 .requestMatchers("/v3/api-docs/swagger-config").permitAll()

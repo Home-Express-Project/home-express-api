@@ -3,30 +3,24 @@ package com.homeexpress.home_express_api.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "provinces")
+@Table(name = "vn_provinces")
 public class Province {
 
     @Id
-    @Column(name = "code", length = 10)
+    @Column(name = "province_code", length = 6)
     private String code;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "province_name", nullable = false)
     private String name;
 
-    @Column(name = "name_en")
+    @Column(name = "province_name_en")
     private String nameEn;
-
-    @Column(name = "full_name")
-    private String fullName;
-
-    @Column(name = "full_name_en")
-    private String fullNameEn;
-
-    @Column(name = "code_name")
-    private String codeName;
 
     @Column(name = "region")
     private String region;
+
+    @Column(name = "display_order")
+    private Integer displayOrder;
 
     public Province() {
     }
@@ -55,35 +49,19 @@ public class Province {
         this.nameEn = nameEn;
     }
 
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getFullNameEn() {
-        return fullNameEn;
-    }
-
-    public void setFullNameEn(String fullNameEn) {
-        this.fullNameEn = fullNameEn;
-    }
-
-    public String getCodeName() {
-        return codeName;
-    }
-
-    public void setCodeName(String codeName) {
-        this.codeName = codeName;
-    }
-
     public String getRegion() {
         return region;
     }
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public Integer getDisplayOrder() {
+        return displayOrder;
+    }
+
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
     }
 }

@@ -191,6 +191,8 @@ CREATE TABLE IF NOT EXISTS `transports` (
   `completed_bookings` INT DEFAULT 0,
   `cancelled_bookings` INT DEFAULT 0,
   `average_rating` DECIMAL(3,2) DEFAULT 0.00,
+  `ready_to_quote` BOOLEAN NOT NULL DEFAULT FALSE,
+  `rate_card_expires_at` DATETIME DEFAULT NULL,
   
   -- KYC (National ID)
   `national_id_number` VARCHAR(12) DEFAULT NULL,

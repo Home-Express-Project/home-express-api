@@ -40,6 +40,8 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     
     private final UserSessionService sessionService;
+
+    private final OtpService otpService;
     
     private final HttpServletRequest httpRequest; // de lay IP, user agent
     
@@ -91,6 +93,9 @@ public class AuthService {
                 transport.setPhone(request.getPhone());
                 transport.setAddress(request.getAddress());
                 transport.setCity(request.getCity());
+                transport.setDistrict(request.getDistrict());
+                transport.setWard(request.getWard());
+                transport.setTaxCode(request.getTaxCode());
                 transport.setBusinessLicenseNumber(request.getBusinessLicenseNumber());
                 transport.setVerificationStatus(VerificationStatus.PENDING);
                 transportRepository.save(transport);
@@ -101,26 +106,47 @@ public class AuthService {
                 throw new RuntimeException("Cannot register as MANAGER");
         }
         
-        // 5. generate tokens
-        String accessToken = jwtTokenProvider.generateAccessToken(
-            savedUser.getUserId(), savedUser.getEmail(), savedUser.getRole().name());
+        // 5. Send OTP for verification
+        otpService.createAndSendOtp(email);
         
-        // 6. tao session (refresh token)
-        String ipAddress = getClientIp();
-        String userAgent = getUserAgent();
-        UserSession session = sessionService.createSession(savedUser, ipAddress, userAgent, null);
-        String refreshToken = session.getPlainRefreshToken();
-        if (!StringUtils.hasText(refreshToken)) {
-            throw new IllegalStateException("Failed to generate refresh token");
-        }
-        
-        // 7. tao response
+        // 6. tao response (chua login)
         AuthResponse response = new AuthResponse();
-        response.setToken(accessToken); // legacy field
-        response.setAccessToken(accessToken);
-        response.setRefreshToken(refreshToken);
         response.setUser(convertToUserResponse(savedUser));
         response.setMessage("Registration successful. Please verify your email.");
+        
+        return response;
+    }
+
+    // Verify registration OTP and issue tokens
+    public AuthResponse verifyRegistration(String email, String code) {
+        // 1. Verify OTP
+        otpService.verifyOtp(email, code);
+
+        // 2. Find user
+        User user = userRepository.findByEmail(email.toLowerCase().trim())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 3. Activate/Verify user
+        user.setIsVerified(true);
+        user.setIsActive(true);
+        userRepository.save(user);
+
+        // 4. Generate tokens
+        String accessToken = jwtTokenProvider.generateAccessToken(
+            user.getUserId(), user.getEmail(), user.getRole().name());
+        
+        String ipAddress = getClientIp();
+        String userAgent = getUserAgent();
+        UserSession session = sessionService.createSession(user, ipAddress, userAgent, null);
+        String refreshToken = session.getPlainRefreshToken();
+        
+        // 5. Response
+        AuthResponse response = new AuthResponse();
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
+        response.setToken(accessToken);
+        response.setUser(convertToUserResponse(user));
+        response.setMessage("Email verified successfully");
         
         return response;
     }
@@ -139,8 +165,13 @@ public class AuthService {
         if (!user.getIsActive()) {
             throw new RuntimeException("Account is disabled. Contact admin.");
         }
+
+        // 3. check email verified
+        if (!user.getIsVerified()) {
+            throw new RuntimeException("Email not verified. Please verify your email.");
+        }
         
-        // 3. verify password
+        // 4. verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new RuntimeException("Invalid email or password");
         }
@@ -238,4 +269,3 @@ public class AuthService {
         return httpRequest.getHeader("User-Agent");
     }
 }
-

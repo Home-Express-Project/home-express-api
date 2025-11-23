@@ -110,6 +110,7 @@ public class AdminUserService {
         userData.put("role", user.getRole());
         userData.put("is_active", user.getIsActive());
         userData.put("is_verified", user.getIsVerified());
+        userData.put("avatar_url", user.getAvatarUrl());
         userData.put("created_at", user.getCreatedAt());
         userData.put("updated_at", user.getUpdatedAt());
 
@@ -127,7 +128,7 @@ public class AdminUserService {
                     profileData.put("phone", customer.getPhone());
                     profileData.put("address", customer.getAddress());
                     profileData.put("date_of_birth", customer.getDateOfBirth());
-                    profileData.put("avatar_url", customer.getAvatarUrl());
+                    profileData.put("avatar_url", user.getAvatarUrl());
                     profileData.put("preferred_language", customer.getPreferredLanguage());
                     profileData.put("created_at", customer.getCreatedAt());
                     profileData.put("updated_at", customer.getUpdatedAt());

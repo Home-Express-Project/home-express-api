@@ -120,6 +120,10 @@ public class UserService {
             user.setEmail(request.getEmail());
         }
 
+        if (request.getAvatar() != null) {
+            user.setAvatarUrl(request.getAvatar());
+        }
+
         switch (user.getRole()) {
             case CUSTOMER -> applyCustomerProfile(userId, request);
             case TRANSPORT -> applyTransportProfile(userId, request);
@@ -172,9 +176,7 @@ public class UserService {
         if (request.getAddress() != null) {
             customer.setAddress(request.getAddress());
         }
-        if (request.getAvatar() != null) {
-            customer.setAvatarUrl(request.getAvatar());
-        }
+        // avatar_url moved to User entity
         if (request.getPreferredLanguage() != null) {
             customer.setPreferredLanguage(request.getPreferredLanguage());
         }
@@ -259,7 +261,7 @@ public class UserService {
         summary.setRole(user.getRole().name());
         summary.setIsActive(user.getIsActive());
         summary.setIsVerified(user.getIsVerified());
-        summary.setAvatar(null);
+        summary.setAvatar(user.getAvatarUrl());
         summary.setCreatedAt(user.getCreatedAt());
         return summary;
     }
@@ -273,7 +275,7 @@ public class UserService {
                     profile.setPhone(customer.getPhone());
                     profile.setAddress(customer.getAddress());
                     profile.setDateOfBirth(customer.getDateOfBirth());
-                    profile.setAvatarUrl(customer.getAvatarUrl());
+                    profile.setAvatarUrl(customer.getUser().getAvatarUrl());
                     profile.setPreferredLanguage(customer.getPreferredLanguage());
                     profile.setCreatedAt(customer.getCreatedAt());
                     profile.setUpdatedAt(customer.getUpdatedAt());
@@ -360,7 +362,7 @@ public class UserService {
         response.setEmail(user.getEmail());
         response.setPhone(null);
         response.setRole(user.getRole().name());
-        response.setAvatar(null);
+        response.setAvatar(user.getAvatarUrl());
         response.setIsActive(user.getIsActive());
         response.setIsVerified(user.getIsVerified());
         response.setCreatedAt(user.getCreatedAt());

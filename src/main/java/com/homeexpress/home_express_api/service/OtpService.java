@@ -38,10 +38,16 @@ public class OtpService {
         otpRepository.save(otp);
 
         // Gui email
-        emailService.sendOtpEmail(email, otpCode);
+        try {
+            emailService.sendOtpEmail(email, otpCode);
+        } catch (Exception e) {
+            // Log warning but allow transaction to commit so user is registered
+            // User can request OTP resend later if email config is fixed
+            System.err.println("WARNING: Failed to send OTP email to " + email + ". User created but email not sent. Error: " + e.getMessage());
+        }
     }
 
-    // Verify OTP
+    // Verify OTP (Consumes it)
     public boolean verifyOtp(String email, String code) {
         // Tim OTP chua su dung
         OtpCode otp = otpRepository.findByEmailAndCodeAndIsUsedFalse(email, code)
@@ -56,6 +62,18 @@ public class OtpService {
         otp.setIsUsed(true);
         otpRepository.save(otp);
 
+        return true;
+    }
+
+    // Validate OTP without consuming (for UI check)
+    public boolean validateOtp(String email, String code) {
+        OtpCode otp = otpRepository.findByEmailAndCodeAndIsUsedFalse(email, code)
+                .orElseThrow(() -> new RuntimeException("Invalid OTP code"));
+
+        if (otp.isExpired()) {
+            throw new RuntimeException("OTP code has expired");
+        }
+        
         return true;
     }
 

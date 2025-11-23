@@ -4,6 +4,7 @@ public class ResetPasswordRequest {
     
     private String email;
     private String newPassword;
+    private String otpCode;
 
     public ResetPasswordRequest() {}
 
@@ -21,5 +22,13 @@ public class ResetPasswordRequest {
 
     public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
+    }
+
+    public String getOtpCode() {
+        return otpCode;
+    }
+
+    public void setOtpCode(String otpCode) {
+        this.otpCode = otpCode;
     }
 }

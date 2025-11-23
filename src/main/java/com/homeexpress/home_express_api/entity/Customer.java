@@ -43,9 +43,6 @@ public class Customer extends SharedPrimaryKeyEntity<Long> {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
     
-    @Column(name = "avatar_url", columnDefinition = "TEXT")
-    private String avatarUrl;
-    
     @Size(max = 10)
     @Column(name = "preferred_language", length = 10)
     private String preferredLanguage = DEFAULT_LANGUAGE;
@@ -127,14 +124,6 @@ public class Customer extends SharedPrimaryKeyEntity<Long> {
 
     public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
     }
 
     public String getPreferredLanguage() {
