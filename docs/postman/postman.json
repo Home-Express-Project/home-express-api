@@ -1,0 +1,212 @@
+{
+	"info": {
+		"name": "Home Express API",
+		"description": {
+		    "content": "Minimal OpenAPI spec to keep code generation plugins working. Extend this file as endpoints evolve.\n",
+		    "type": "text/markdown"
+		},
+		"version": "0.0.1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+	        {
+	            "name": "Notifications",
+	            "item": [
+	                        {
+    "name": "/notifications",
+                "description": "",
+                 "item": [
+                            {
+                                "name": "Get notifications for current user",
+                                "request": {
+                                    "method": "GET",
+                                    "header": [
+                                        {
+                                            "key": "Accept",
+                                            "value": "application/json",
+                                            "description": "",
+                                            "disabled": false
+                                        }
+                                    ],
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    },
+                                    "url": {
+                                        "raw": "{{baseUrl}}/notifications",
+                                        "host": [
+                                            "{{baseUrl}}"
+                                        ],
+                                        "path": [
+                                            "notifications"
+                                        ],
+                                        "variable": [
+                                        ],
+                                        "query": [
+                                            {
+                                                "key": "isRead",
+                                                "value": "true",
+                                                "description": "",
+                                                "disabled": true
+                                            },
+                                            {
+                                                "key": "page",
+                                                "value": "56",
+                                                "description": "Zero-based page index (Spring pageable)",
+                                                "disabled": true
+                                            },
+                                            {
+                                                "key": "size",
+                                                "value": "56",
+                                                "description": "Page size (Spring pageable)",
+                                                "disabled": true
+                                            },
+                                            {
+                                                "key": "sort",
+                                                "value": "sort_example",
+                                                "description": "Sort expression (Spring pageable)",
+                                                "disabled": true
+                                            }
+                                        ]
+                                    },
+                                    "description": ""
+                                }
+                            }
+                            ]
+                        },
+	                        {
+    "name": "/notifications/unread-count",
+                "description": "",
+                 "item": [
+                            {
+                                "name": "Get unread notification count",
+                                "request": {
+                                    "method": "GET",
+                                    "header": [
+                                        {
+                                            "key": "Accept",
+                                            "value": "application/json",
+                                            "description": "",
+                                            "disabled": false
+                                        }
+                                    ],
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    },
+                                    "url": {
+                                        "raw": "{{baseUrl}}/notifications/unread-count",
+                                        "host": [
+                                            "{{baseUrl}}"
+                                        ],
+                                        "path": [
+                                            "notifications",
+                                            "unread-count"
+                                        ],
+                                        "variable": [
+                                        ],
+                                        "query": [
+                                        ]
+                                    },
+                                    "description": ""
+                                }
+                            }
+                            ]
+                        }
+	                    ]
+	        },
+	        {
+	            "name": "Admin Transport",
+	            "item": [
+	                        {
+    "name": "/admin/transports/:id/vehicles",
+                "description": "",
+                 "item": [
+                            {
+                                "name": "List vehicles for a transport (admin)",
+                                "request": {
+                                    "method": "GET",
+                                    "header": [
+                                        {
+                                            "key": "Accept",
+                                            "value": "application/json",
+                                            "description": "",
+                                            "disabled": false
+                                        }
+                                    ],
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    },
+                                    "url": {
+                                        "raw": "{{baseUrl}}/admin/transports/:id/vehicles",
+                                        "host": [
+                                            "{{baseUrl}}"
+                                        ],
+                                        "path": [
+                                            "admin",
+                                            "transports",
+                                            ":id",
+                                            "vehicles"
+                                        ],
+                                        "variable": [
+                                            {
+                                                "key": "id",
+                                                "value": "",
+                                                "description": "Transport ID"
+                                            }
+                                        ],
+                                        "query": [
+                                            {
+                                                "key": "status",
+                                                "value": "status_example",
+                                                "description": "",
+                                                "disabled": true
+                                            },
+                                            {
+                                                "key": "page",
+                                                "value": "56",
+                                                "description": "",
+                                                "disabled": true
+                                            },
+                                            {
+                                                "key": "size",
+                                                "value": "56",
+                                                "description": "",
+                                                "disabled": true
+                                            }
+                                        ]
+                                    },
+                                    "description": ""
+                                }
+                            }
+                            ]
+                        }
+	                    ]
+	        }
+    ],
+    
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8084/api/v1",
+			"type": "string"
+        }
+	]
+}
+

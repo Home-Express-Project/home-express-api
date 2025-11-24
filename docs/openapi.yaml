@@ -1,0 +1,208 @@
+openapi: 3.0.1
+info:
+  title: Home Express API
+  version: "0.0.1"
+  description: >
+    Minimal OpenAPI spec to keep code generation plugins working.
+    Extend this file as endpoints evolve.
+servers:
+  - url: http://localhost:8084/api/v1
+paths:
+  /admin/transports/{id}/vehicles:
+    get:
+      summary: List vehicles for a transport (admin)
+      tags:
+        - Admin Transport
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+            format: int64
+          required: true
+          description: Transport ID
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, INACTIVE, UNDER_MAINTENANCE]
+          required: false
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          required: false
+        - in: query
+          name: size
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+          required: false
+      responses:
+        "200":
+          description: Vehicle list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseVehicleList"
+  /notifications:
+    get:
+      summary: Get notifications for current user
+      tags:
+        - Notifications
+      parameters:
+        - in: query
+          name: isRead
+          schema:
+            type: boolean
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 0
+          description: Zero-based page index (Spring pageable)
+        - in: query
+          name: size
+          schema:
+            type: integer
+            minimum: 1
+          description: Page size (Spring pageable)
+        - in: query
+          name: sort
+          schema:
+            type: string
+          description: Sort expression (Spring pageable)
+      responses:
+        "200":
+          description: Notification page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageNotificationResponse"
+  /notifications/unread-count:
+    get:
+      summary: Get unread notification count
+      tags:
+        - Notifications
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unreadCount:
+                    type: integer
+                    format: int64
+                    example: 3
+components:
+  schemas:
+    Notification:
+      type: object
+      properties:
+        notificationId:
+          type: integer
+          format: int64
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        referenceType:
+          type: string
+        referenceId:
+          type: integer
+          format: int64
+          nullable: true
+        actionUrl:
+          type: string
+          nullable: true
+        isRead:
+          type: boolean
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+        priority:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    Vehicle:
+      type: object
+      properties:
+        vehicleId:
+          type: integer
+          format: int64
+        model:
+          type: string
+        licensePlate:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, UNDER_MAINTENANCE]
+    VehicleListPagination:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+        totalPages:
+          type: integer
+        totalItems:
+          type: integer
+        itemsPerPage:
+          type: integer
+    VehicleListResponse:
+      type: object
+      properties:
+        vehicles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vehicle"
+        pagination:
+          $ref: "#/components/schemas/VehicleListPagination"
+    ApiResponseVehicleList:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: "#/components/schemas/VehicleListResponse"
+        message:
+          type: string
+        error:
+          type: string
+    PageMetadata:
+      type: object
+      properties:
+        totalPages:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        size:
+          type: integer
+        number:
+          type: integer
+    PageNotificationResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        totalPages:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        size:
+          type: integer
+        number:
+          type: integer
