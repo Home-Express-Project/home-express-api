@@ -39,6 +39,7 @@ public class QuotationController {
     public ResponseEntity<QuotationResponse> createQuotation(
             @Valid @RequestBody QuotationRequest request,
             @RequestParam Long transportId) {
+        // Nha van chuyen gui bao gia moi cho mot booking cu the
         QuotationResponse response = quotationService.createQuotation(request, transportId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -49,7 +50,7 @@ public class QuotationController {
     @RequestParam(required = false) Long transportId,
     @RequestParam(required = false) QuotationStatus status,
     Pageable pageable) {
-    // Return detailed quotations when bookingId is provided (for frontend QuotationDetail)
+    // Neu co bookingId thi tra ve bao gia chi tiet de UI hien thi (bao gom thong tin nha van chuyen)
     if (bookingId != null) {
             Page<QuotationDetailResponse> quotations = quotationService.getDetailedQuotations(bookingId, transportId, status, pageable);
             return ResponseEntity.ok(quotations);
@@ -71,6 +72,7 @@ public class QuotationController {
             @RequestBody(required = false) AcceptQuotationRequest request,
             @RequestParam Long customerId,
             HttpServletRequest httpRequest) {
+        // Khach hang chap nhan bao gia, luu lai IP thuc hien de kiem soat
         String ipAddress = getClientIp(httpRequest);
         AcceptQuotationResponse response = quotationService.acceptQuotation(id, customerId, ipAddress);
         return ResponseEntity.ok(response);
@@ -78,6 +80,7 @@ public class QuotationController {
 
     @PostMapping("/{id}/reject")
     public ResponseEntity<Map<String, String>> rejectQuotation(@PathVariable Long id) {
+        // Khach hang tu choi bao gia
         quotationService.rejectQuotation(id);
         return ResponseEntity.ok(Map.of("message", "Quotation rejected successfully"));
     }

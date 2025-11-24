@@ -1,18 +1,28 @@
 package com.homeexpress.home_express_api.controller;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.homeexpress.home_express_api.dto.request.CategoryPricingRequest;
 import com.homeexpress.home_express_api.dto.response.ApiResponse;
 import com.homeexpress.home_express_api.dto.response.CategoryPricingListResponse;
 import com.homeexpress.home_express_api.dto.response.CategoryPricingResponse;
 import com.homeexpress.home_express_api.service.CategoryPricingService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -23,7 +33,7 @@ public class CategoryPricingController {
     private final CategoryPricingService categoryPricingService;
 
     @PostMapping
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'TRANSPORT')")
     public ResponseEntity<ApiResponse<?>> createCategoryPricing(@Valid @RequestBody CategoryPricingRequest request) {
         try {
             CategoryPricingResponse response = categoryPricingService.createCategoryPricing(request);
@@ -41,9 +51,9 @@ public class CategoryPricingController {
             @RequestParam(required = false) Long transportId,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Boolean active) {
-        
+
         List<CategoryPricingResponse> pricingList;
-        
+
         if (transportId != null) {
             pricingList = categoryPricingService.getCategoryPricingByTransport(transportId);
         } else if (categoryId != null) {
@@ -53,11 +63,11 @@ public class CategoryPricingController {
         } else {
             pricingList = categoryPricingService.getAllCategoryPricing();
         }
-        
+
         CategoryPricingListResponse response = CategoryPricingListResponse.builder()
                 .pricingRules(pricingList)
                 .build();
-        
+
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -88,7 +98,7 @@ public class CategoryPricingController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'TRANSPORT')")
     public ResponseEntity<ApiResponse<CategoryPricingResponse>> updateCategoryPricing(
             @PathVariable Long id,
             @Valid @RequestBody CategoryPricingRequest request) {
@@ -102,7 +112,7 @@ public class CategoryPricingController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'TRANSPORT')")
     public ResponseEntity<ApiResponse<Void>> deactivateCategoryPricing(@PathVariable Long id) {
         try {
             categoryPricingService.deactivateCategoryPricing(id);
@@ -113,4 +123,3 @@ public class CategoryPricingController {
         }
     }
 }
-

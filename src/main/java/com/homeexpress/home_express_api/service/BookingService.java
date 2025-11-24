@@ -1,45 +1,80 @@
 package com.homeexpress.home_express_api.service;
 
-import com.homeexpress.home_express_api.dto.booking.*;
-import com.homeexpress.home_express_api.dto.request.ConfirmCompletionRequest;
-import com.homeexpress.home_express_api.entity.*;
-import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
-import com.homeexpress.home_express_api.exception.UnauthorizedException;
-import com.homeexpress.home_express_api.repository.*;
-import com.homeexpress.home_express_api.dto.response.QuotationResponse;
-import com.homeexpress.home_express_api.dto.response.BookingTimelineResponse;
-import com.homeexpress.home_express_api.dto.response.BookingTimelineEvent;
-import com.homeexpress.home_express_api.entity.Notification;
-import com.homeexpress.home_express_api.entity.User;
-import com.homeexpress.home_express_api.entity.Quotation;
-import com.homeexpress.home_express_api.entity.QuotationStatus;
-import com.homeexpress.home_express_api.entity.Payment;
-import com.homeexpress.home_express_api.entity.PaymentStatus;
-import com.homeexpress.home_express_api.entity.PaymentType;
-import com.homeexpress.home_express_api.repository.UserRepository;
-import com.homeexpress.home_express_api.service.map.MapService;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.homeexpress.home_express_api.dto.booking.AddressDto;
+import com.homeexpress.home_express_api.dto.booking.BookingRequest;
+import com.homeexpress.home_express_api.dto.booking.BookingResponse;
+import com.homeexpress.home_express_api.dto.booking.BookingStatusHistoryResponse;
+import com.homeexpress.home_express_api.dto.booking.BookingUpdateRequest;
+import com.homeexpress.home_express_api.dto.request.ConfirmCompletionRequest;
+import com.homeexpress.home_express_api.dto.response.BookingTimelineEvent;
+import com.homeexpress.home_express_api.dto.response.BookingTimelineResponse;
+import com.homeexpress.home_express_api.dto.response.QuotationResponse;
+import com.homeexpress.home_express_api.entity.ActorRole;
+import com.homeexpress.home_express_api.entity.Booking;
+import com.homeexpress.home_express_api.entity.BookingItem;
+import com.homeexpress.home_express_api.entity.BookingStatus;
+import com.homeexpress.home_express_api.entity.BookingStatusHistory;
+import com.homeexpress.home_express_api.entity.DistanceSource;
+import com.homeexpress.home_express_api.entity.Notification;
+import com.homeexpress.home_express_api.entity.Payment;
+import com.homeexpress.home_express_api.entity.PaymentStatus;
+import com.homeexpress.home_express_api.entity.PaymentType;
+import com.homeexpress.home_express_api.entity.Quotation;
+import com.homeexpress.home_express_api.entity.QuotationStatus;
+import com.homeexpress.home_express_api.entity.Transport;
+import com.homeexpress.home_express_api.entity.User;
+import com.homeexpress.home_express_api.entity.UserRole;
+import com.homeexpress.home_express_api.entity.VerificationStatus;
+import com.homeexpress.home_express_api.exception.ResourceNotFoundException;
+import com.homeexpress.home_express_api.exception.UnauthorizedException;
+import com.homeexpress.home_express_api.repository.BookingItemRepository;
+import com.homeexpress.home_express_api.repository.BookingRepository;
+import com.homeexpress.home_express_api.repository.BookingSettlementRepository;
+import com.homeexpress.home_express_api.repository.BookingStatusHistoryRepository;
+import com.homeexpress.home_express_api.repository.CustomerRepository;
+import com.homeexpress.home_express_api.repository.PaymentRepository;
+import com.homeexpress.home_express_api.repository.QuotationRepository;
+import com.homeexpress.home_express_api.repository.TransportRepository;
+import com.homeexpress.home_express_api.repository.UserRepository;
+import com.homeexpress.home_express_api.repository.VnDistrictRepository;
+import com.homeexpress.home_express_api.repository.VnProvinceRepository;
+import com.homeexpress.home_express_api.repository.VnWardRepository;
+import com.homeexpress.home_express_api.service.map.MapService;
+
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Service quản lý đặt chỗ (Booking)
+ *
+ * Luồng hoạt động chính: 1. Khách hàng tạo booking (PENDING) 2. Đối tác vận
+ * chuyển gửi báo giá (QUOTED) 3. Khách hàng chấp nhận báo giá và thanh toán đặt
+ * cọc (CONFIRMED) 4. Đối tác thực hiện vận chuyển (IN_PROGRESS) 5. Đối tác hoàn
+ * thành vận chuyển (COMPLETED) 6. Khách hàng thanh toán phần còn lại và xác
+ * nhận hoàn thành (CONFIRMED_BY_CUSTOMER) 7. Hệ thống xử lý thanh toán cho đối
+ * tác (Settlement)
+ */
 @RequiredArgsConstructor
 @Service
 public class BookingService {
 
     private static final Logger log = LoggerFactory.getLogger(BookingService.class);
-    private static final Map<BookingStatus, EnumSet<BookingStatus>> ALLOWED_STATUS_TRANSITIONS =
-            Map.of(
+
+    // Định nghĩa các chuyển đổi trạng thái hợp lệ
+    private static final Map<BookingStatus, EnumSet<BookingStatus>> ALLOWED_STATUS_TRANSITIONS
+            = Map.of(
                     BookingStatus.PENDING, EnumSet.of(BookingStatus.QUOTED, BookingStatus.CANCELLED),
                     BookingStatus.QUOTED, EnumSet.of(BookingStatus.CONFIRMED, BookingStatus.CANCELLED)
             );
@@ -76,54 +111,76 @@ public class BookingService {
 
     private final MapService mapService;
 
+    /**
+     * Tạo booking mới
+     *
+     * Luồng: 1. Validate quyền truy cập (chỉ CUSTOMER hoặc MANAGER) 2. Validate
+     * thông tin khách hàng tồn tại 3. Validate địa chỉ lấy hàng và giao hàng 4.
+     * Tạo booking với trạng thái PENDING 5. Lưu thông tin địa chỉ, ngày giờ
+     * mong muốn 6. Tính khoảng cách giữa 2 địa chỉ (nếu có tọa độ) 7. Lưu danh
+     * sách hàng hóa cần vận chuyển 8. Tạo lịch sử trạng thái 9. Gửi thông báo
+     * cho khách hàng
+     *
+     * @param request Thông tin booking
+     * @param customerId ID khách hàng
+     * @param requesterRole Vai trò người yêu cầu
+     * @return BookingResponse
+     */
     @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
     @Transactional
     public BookingResponse createBooking(BookingRequest request, Long customerId, UserRole requesterRole) {
-        if (requesterRole != null &&
-                requesterRole != UserRole.CUSTOMER &&
-                requesterRole != UserRole.MANAGER) {
+        // 1. Kiểm tra quyền truy cập
+        if (requesterRole != null
+                && requesterRole != UserRole.CUSTOMER
+                && requesterRole != UserRole.MANAGER) {
             throw new UnauthorizedException("Only customers or managers can create bookings");
         }
 
+        // 2. Kiểm tra khách hàng tồn tại
         if (!customerRepository.existsById(customerId)) {
             throw new ResourceNotFoundException("Customer not found with ID: " + customerId);
         }
 
+        // 3. Validate địa chỉ
         validateAddress(request.getPickupAddress(), "Pickup");
         validateAddress(request.getDeliveryAddress(), "Delivery");
 
+        // 4. Tạo booking mới với trạng thái PENDING
         Booking booking = new Booking();
         booking.setCustomerId(customerId);
         booking.setStatus(BookingStatus.PENDING);
 
+        // 5. Lưu thông tin địa chỉ
         mapAddressToBooking(request.getPickupAddress(), booking, true);
         mapAddressToBooking(request.getDeliveryAddress(), booking, false);
 
+        // Lưu thông tin ngày giờ và ghi chú
         booking.setPreferredDate(request.getPreferredDate());
         booking.setPreferredTimeSlot(request.getPreferredTimeSlot());
         booking.setNotes(request.getNotes());
         booking.setSpecialRequirements(request.getSpecialRequirements());
 
-        // Set transport ID if provided (when customer selects a transport directly)
+        // Lưu transport ID nếu khách hàng đã chọn đối tác trực tiếp
         if (request.getTransportId() != null) {
             booking.setTransportId(request.getTransportId());
         }
 
-        // Set estimated price if provided (from transport estimate)
+        // Lưu giá ước tính nếu có (từ bảng giá của transport)
         if (request.getEstimatedPrice() != null) {
             booking.setEstimatedPrice(request.getEstimatedPrice());
         }
 
-        if (request.getPickupAddress().getLat() != null && 
-            request.getPickupAddress().getLng() != null &&
-            request.getDeliveryAddress().getLat() != null && 
-            request.getDeliveryAddress().getLng() != null) {
+        // 6. Tính khoảng cách nếu có tọa độ đầy đủ
+        if (request.getPickupAddress().getLat() != null
+                && request.getPickupAddress().getLng() != null
+                && request.getDeliveryAddress().getLat() != null
+                && request.getDeliveryAddress().getLng() != null) {
             calculateDistance(booking, request.getPickupAddress(), request.getDeliveryAddress());
         }
 
         Booking savedBooking = bookingRepository.save(booking);
 
-        // Save booking items
+        // 7. Lưu danh sách hàng hóa
         if (request.getItems() != null && !request.getItems().isEmpty()) {
             for (BookingRequest.ItemDto itemDto : request.getItems()) {
                 BookingItem item = new BookingItem();
@@ -137,26 +194,36 @@ public class BookingService {
                 item.setDeclaredValueVnd(itemDto.getDeclaredValueVnd());
                 item.setIsFragile(itemDto.getIsFragile() != null ? itemDto.getIsFragile() : false);
                 item.setRequiresDisassembly(itemDto.getRequiresDisassembly() != null ? itemDto.getRequiresDisassembly() : false);
-                
+
                 bookingItemRepository.save(item);
             }
         }
 
-        createStatusHistory(savedBooking.getBookingId(), null, BookingStatus.PENDING, 
-                           customerId, ActorRole.CUSTOMER, "Booking created");
+        // 8. Tạo lịch sử trạng thái
+        createStatusHistory(savedBooking.getBookingId(), null, BookingStatus.PENDING,
+                customerId, ActorRole.CUSTOMER, "Booking created");
 
-        // Send notification to customer about booking creation
+        // 9. Gửi thông báo cho khách hàng
         sendBookingCreatedNotification(savedBooking, customerId);
 
         return BookingResponse.fromEntity(savedBooking);
     }
 
+    /**
+     * Lấy thông tin chi tiết một booking theo ID
+     *
+     * @param bookingId ID booking
+     * @param userId ID người dùng
+     * @param userRole Vai trò người dùng
+     * @return BookingResponse
+     */
     @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER','TRANSPORT')")
     @Transactional(readOnly = true)
     public BookingResponse getBookingById(Long bookingId, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
-            .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
 
+        // Khách hàng chỉ được xem booking của mình
         if (userRole == UserRole.CUSTOMER && !booking.getCustomerId().equals(userId)) {
             throw new UnauthorizedException("You are not authorized to view this booking");
         }
@@ -164,6 +231,17 @@ public class BookingService {
         return BookingResponse.fromEntity(booking);
     }
 
+    /**
+     * Lấy danh sách booking cho người dùng
+     *
+     * - MANAGER: Có thể xem tất cả booking hoặc booking của một khách hàng cụ
+     * thể - CUSTOMER: Chỉ xem được booking của chính mình
+     *
+     * @param customerId ID khách hàng (optional)
+     * @param requesterId ID người yêu cầu
+     * @param requesterRole Vai trò người yêu cầu
+     * @return Danh sách BookingResponse
+     */
     @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
     @Transactional(readOnly = true)
     public List<BookingResponse> getBookingsForUser(Long customerId, Long requesterId, UserRole requesterRole) {
@@ -182,18 +260,33 @@ public class BookingService {
         throw new UnauthorizedException("Access denied");
     }
 
+    /**
+     * Lấy danh sách booking của một khách hàng cụ thể
+     *
+     * @param customerId ID khách hàng
+     * @param requestingUserId ID người yêu cầu
+     * @param userRole Vai trò người dùng
+     * @return Danh sách BookingResponse
+     */
     @Transactional(readOnly = true)
     public List<BookingResponse> getBookingsByCustomer(Long customerId, Long requestingUserId, UserRole userRole) {
+        // Khách hàng chỉ được xem booking của chính mình
         if (userRole == UserRole.CUSTOMER && !customerId.equals(requestingUserId)) {
             throw new UnauthorizedException("You can only view your own bookings");
         }
 
         return bookingRepository.findByCustomerIdOrderByCreatedAtDesc(customerId)
-            .stream()
-            .map(BookingResponse::fromEntity)
-            .collect(Collectors.toList());
+                .stream()
+                .map(BookingResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
+    /**
+     * Lấy tất cả booking trong hệ thống (chỉ dành cho MANAGER)
+     *
+     * @param userRole Vai trò người dùng
+     * @return Danh sách tất cả BookingResponse
+     */
     @Transactional(readOnly = true)
     public List<BookingResponse> getAllBookings(UserRole userRole) {
         if (userRole != UserRole.MANAGER) {
@@ -201,17 +294,33 @@ public class BookingService {
         }
 
         return bookingRepository.findAll()
-            .stream()
-            .map(BookingResponse::fromEntity)
-            .collect(Collectors.toList());
+                .stream()
+                .map(BookingResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
+    /**
+     * Cập nhật thông tin booking
+     *
+     * Chỉ cho phép cập nhật khi booking ở trạng thái PENDING hoặc QUOTED
+     *
+     * Luồng: 1. Kiểm tra quyền truy cập 2. Kiểm tra trạng thái booking hợp lệ
+     * 3. Cập nhật thông tin địa chỉ (nếu có) 4. Cập nhật thông tin ngày giờ và
+     * ghi chú 5. Cập nhật trạng thái (nếu có) và validate chuyển đổi 6. Gửi
+     * thông báo về thay đổi
+     *
+     * @param bookingId ID booking
+     * @param request Thông tin cập nhật
+     * @param userId ID người dùng
+     * @param userRole Vai trò người dùng
+     * @return BookingResponse đã cập nhật
+     */
     @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
     @Transactional
-    public BookingResponse updateBooking(Long bookingId, BookingUpdateRequest request, 
-                                        Long userId, UserRole userRole) {
+    public BookingResponse updateBooking(Long bookingId, BookingUpdateRequest request,
+            Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
-            .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
 
         if (userRole == UserRole.CUSTOMER && !booking.getCustomerId().equals(userId)) {
             throw new UnauthorizedException("You are not authorized to update this booking");
@@ -252,13 +361,13 @@ public class BookingService {
         if (request.getStatus() != null && request.getStatus() != oldStatus) {
             validateStatusTransition(oldStatus, request.getStatus());
             booking.setStatus(request.getStatus());
-            
-            ActorRole actorRole = userRole == UserRole.CUSTOMER ? ActorRole.CUSTOMER : 
-                                 userRole == UserRole.MANAGER ? ActorRole.MANAGER : ActorRole.SYSTEM;
-            
-            createStatusHistory(bookingId, oldStatus, request.getStatus(), 
-                              userId, actorRole, request.getCancellationReason());
-            
+
+            ActorRole actorRole = userRole == UserRole.CUSTOMER ? ActorRole.CUSTOMER
+                    : userRole == UserRole.MANAGER ? ActorRole.MANAGER : ActorRole.SYSTEM;
+
+            createStatusHistory(bookingId, oldStatus, request.getStatus(),
+                    userId, actorRole, request.getCancellationReason());
+
             // Send notification about status change
             sendBookingStatusChangeNotification(booking, oldStatus, request.getStatus());
         }
@@ -267,11 +376,25 @@ public class BookingService {
         return BookingResponse.fromEntity(updatedBooking);
     }
 
+    /**
+     * Hủy booking
+     *
+     * Không cho phép hủy booking đã hoàn thành hoặc đã hủy trước đó
+     *
+     * Luồng: 1. Kiểm tra quyền truy cập 2. Kiểm tra trạng thái có thể hủy 3.
+     * Cập nhật trạng thái thành CANCELLED 4. Lưu thông tin người hủy và lý do
+     * 5. Tạo lịch sử trạng thái 6. Gửi thông báo về việc hủy
+     *
+     * @param bookingId ID booking
+     * @param reason Lý do hủy
+     * @param userId ID người dùng
+     * @param userRole Vai trò người dùng
+     */
     @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
     @Transactional
     public void cancelBooking(Long bookingId, String reason, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
-            .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
 
         if (userRole == UserRole.CUSTOMER && !booking.getCustomerId().equals(userId)) {
             throw new UnauthorizedException("You are not authorized to cancel this booking");
@@ -289,71 +412,102 @@ public class BookingService {
 
         bookingRepository.save(booking);
 
-        ActorRole actorRole = userRole == UserRole.CUSTOMER ? ActorRole.CUSTOMER : 
-                             userRole == UserRole.MANAGER ? ActorRole.MANAGER : ActorRole.SYSTEM;
+        ActorRole actorRole = userRole == UserRole.CUSTOMER ? ActorRole.CUSTOMER
+                : userRole == UserRole.MANAGER ? ActorRole.MANAGER : ActorRole.SYSTEM;
 
-        createStatusHistory(bookingId, oldStatus, BookingStatus.CANCELLED, 
-                          userId, actorRole, reason);
-        
+        createStatusHistory(bookingId, oldStatus, BookingStatus.CANCELLED,
+                userId, actorRole, reason);
+
         // Send notification about cancellation
         sendBookingStatusChangeNotification(booking, oldStatus, BookingStatus.CANCELLED);
     }
 
+    /**
+     * Lấy lịch sử thay đổi trạng thái của booking
+     *
+     * @param bookingId ID booking
+     * @param userId ID người dùng
+     * @param userRole Vai trò người dùng
+     * @return Danh sách lịch sử trạng thái
+     */
     @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER','TRANSPORT')")
     @Transactional(readOnly = true)
     public List<BookingStatusHistoryResponse> getBookingHistory(Long bookingId, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
-            .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
 
         if (userRole == UserRole.CUSTOMER && !booking.getCustomerId().equals(userId)) {
             throw new UnauthorizedException("You are not authorized to view this booking's history");
         }
 
         return statusHistoryRepository.findByBookingIdOrderByChangedAtDesc(bookingId)
-            .stream()
-            .map(BookingStatusHistoryResponse::fromEntity)
-            .collect(Collectors.toList());
+                .stream()
+                .map(BookingStatusHistoryResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
+    /**
+     * Lấy danh sách báo giá cho một booking
+     *
+     * @param bookingId ID booking
+     * @param userId ID người dùng
+     * @param userRole Vai trò người dùng
+     * @return Danh sách báo giá
+     */
     @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
     @Transactional(readOnly = true)
     public List<QuotationResponse> getBookingQuotations(Long bookingId, Long userId, UserRole userRole) {
         Booking booking = bookingRepository.findById(bookingId)
-            .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + bookingId));
 
         if (userRole == UserRole.CUSTOMER && !booking.getCustomerId().equals(userId)) {
             throw new UnauthorizedException("You are not authorized to view this booking's quotations");
         }
 
         return quotationRepository.findByBookingId(bookingId)
-            .stream()
-            .map(quotation -> {
-                QuotationResponse response = new QuotationResponse();
-                response.setQuotationId(quotation.getQuotationId());
-                response.setBookingId(quotation.getBookingId());
-                response.setTransportId(quotation.getTransportId());
-                response.setQuotedPrice(quotation.getQuotedPrice());
-                response.setBasePrice(quotation.getBasePrice());
-                response.setDistancePrice(quotation.getDistancePrice());
-                response.setItemsPrice(quotation.getItemsPrice());
-                response.setAdditionalFees(quotation.getAdditionalFees());
-                response.setDiscount(quotation.getDiscount());
-                response.setPriceBreakdown(quotation.getPriceBreakdown());
-                response.setNotes(quotation.getNotes());
-                response.setValidityPeriod(quotation.getValidityPeriod());
-                response.setExpiresAt(quotation.getExpiresAt());
-                response.setStatus(quotation.getStatus());
-                response.setRespondedAt(quotation.getRespondedAt());
-                response.setAcceptedBy(quotation.getAcceptedBy());
-                response.setAcceptedAt(quotation.getAcceptedAt());
-                response.setCreatedAt(quotation.getCreatedAt());
-                return response;
-            })
-            .collect(Collectors.toList());
+                .stream()
+                .map(quotation -> {
+                    QuotationResponse response = new QuotationResponse();
+                    response.setQuotationId(quotation.getQuotationId());
+                    response.setBookingId(quotation.getBookingId());
+                    response.setTransportId(quotation.getTransportId());
+                    response.setQuotedPrice(quotation.getQuotedPrice());
+                    response.setBasePrice(quotation.getBasePrice());
+                    response.setDistancePrice(quotation.getDistancePrice());
+                    response.setItemsPrice(quotation.getItemsPrice());
+                    response.setAdditionalFees(quotation.getAdditionalFees());
+                    response.setDiscount(quotation.getDiscount());
+                    response.setPriceBreakdown(quotation.getPriceBreakdown());
+                    response.setNotes(quotation.getNotes());
+                    response.setValidityPeriod(quotation.getValidityPeriod());
+                    response.setExpiresAt(quotation.getExpiresAt());
+                    response.setStatus(quotation.getStatus());
+                    response.setRespondedAt(quotation.getRespondedAt());
+                    response.setAcceptedBy(quotation.getAcceptedBy());
+                    response.setAcceptedAt(quotation.getAcceptedAt());
+                    response.setCreatedAt(quotation.getCreatedAt());
+                    return response;
+                })
+                .collect(Collectors.toList());
     }
 
     /**
-     * Khách chọn transport sau khi xem bảng giá dự tính.
+     * Gán đối tác vận chuyển cho booking
+     *
+     * Khách hàng chọn transport sau khi xem bảng giá dự tính
+     *
+     * Luồng: 1. Kiểm tra quyền truy cập (chỉ khách hàng sở hữu booking) 2. Kiểm
+     * tra booking chưa được gán transport khác 3. Kiểm tra trạng thái booking
+     * hợp lệ (PENDING hoặc QUOTED) 4. Validate transport đã được duyệt và sẵn
+     * sàng báo giá 5. Gán transport và giá ước tính cho booking 6. Chuyển trạng
+     * thái sang QUOTED nếu đang PENDING
+     *
+     * @param bookingId ID booking
+     * @param transportId ID đối tác vận chuyển
+     * @param estimatedPrice Giá ước tính
+     * @param userId ID người dùng
+     * @param userRole Vai trò người dùng
+     * @return BookingResponse đã cập nhật
      */
     @PreAuthorize("hasRole('CUSTOMER')")
     @Transactional
@@ -462,7 +616,7 @@ public class BookingService {
 
         // Fallback to Haversine (MANUAL)
         double distance = haversineDistance(lat1, lon1, lat2, lon2);
-        
+
         booking.setDistanceKm(BigDecimal.valueOf(distance));
         booking.setDistanceSource(DistanceSource.MANUAL);
         booking.setDistanceCalculatedAt(LocalDateTime.now());
@@ -474,9 +628,9 @@ public class BookingService {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
 
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                   Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
@@ -487,7 +641,7 @@ public class BookingService {
         if (oldStatus == BookingStatus.COMPLETED) {
             throw new IllegalStateException("Cannot change status of a completed booking");
         }
-        
+
         if (oldStatus == BookingStatus.CANCELLED && newStatus != BookingStatus.CANCELLED) {
             throw new IllegalStateException("Cannot reopen a cancelled booking");
         }
@@ -499,7 +653,7 @@ public class BookingService {
     }
 
     private void createStatusHistory(Long bookingId, BookingStatus oldStatus, BookingStatus newStatus,
-                                     Long changedBy, ActorRole role, String reason) {
+            Long changedBy, ActorRole role, String reason) {
         BookingStatusHistory history = new BookingStatusHistory(bookingId, oldStatus, newStatus, changedBy, role);
         history.setReason(reason);
         statusHistoryRepository.save(history);
@@ -561,7 +715,7 @@ public class BookingService {
         } catch (Exception e) {
             // Log error but don't fail the transaction
             log.error("Failed to send booking status change notification for booking {}: {}",
-                booking.getBookingId(), e.getMessage(), e);
+                    booking.getBookingId(), e.getMessage(), e);
         }
     }
 
@@ -573,45 +727,55 @@ public class BookingService {
             User customerUser = userRepository.findById(customerId).orElse(null);
             if (customerUser != null) {
                 notificationService.createNotification(
-                    customerUser.getUserId(),
-                    Notification.NotificationType.BOOKING_UPDATE,
-                    "Booking Created Successfully",
-                    String.format("Your booking #%d has been created and is awaiting quotations from transports.", 
-                        booking.getBookingId()),
-                    Notification.ReferenceType.BOOKING,
-                    booking.getBookingId(),
-                    Notification.Priority.MEDIUM
+                        customerUser.getUserId(),
+                        Notification.NotificationType.BOOKING_UPDATE,
+                        "Booking Created Successfully",
+                        String.format("Your booking #%d has been created and is awaiting quotations from transports.",
+                                booking.getBookingId()),
+                        Notification.ReferenceType.BOOKING,
+                        booking.getBookingId(),
+                        Notification.Priority.MEDIUM
                 );
             }
         } catch (Exception e) {
-            log.error("Failed to send booking created notification for booking {}: {}", 
-                booking.getBookingId(), e.getMessage(), e);
+            log.error("Failed to send booking created notification for booking {}: {}",
+                    booking.getBookingId(), e.getMessage(), e);
         }
     }
 
     private String getStatusChangeMessage(BookingStatus status) {
         return switch (status) {
-            case PENDING -> "Your booking is pending quotation.";
-            case QUOTED -> "Quotation has been submitted. Please review and accept.";
-            case CONFIRMED -> "Booking confirmed! Please proceed with payment.";
-            case IN_PROGRESS -> "Your booking is now in progress.";
-            case COMPLETED -> "Booking completed! Please leave a review.";
-            case CANCELLED -> "Booking has been cancelled.";
-            default -> "Booking status updated.";
+            case PENDING ->
+                "Your booking is pending quotation.";
+            case QUOTED ->
+                "Quotation has been submitted. Please review and accept.";
+            case CONFIRMED ->
+                "Booking confirmed! Please proceed with payment.";
+            case IN_PROGRESS ->
+                "Your booking is now in progress.";
+            case COMPLETED ->
+                "Booking completed! Please leave a review.";
+            case CANCELLED ->
+                "Booking has been cancelled.";
+            default ->
+                "Booking status updated.";
         };
     }
 
     private Notification.Priority getNotificationPriority(BookingStatus status) {
         return switch (status) {
-            case COMPLETED, CANCELLED -> Notification.Priority.HIGH;
-            case CONFIRMED, IN_PROGRESS -> Notification.Priority.MEDIUM;
-            default -> Notification.Priority.LOW;
+            case COMPLETED, CANCELLED ->
+                Notification.Priority.HIGH;
+            case CONFIRMED, IN_PROGRESS ->
+                Notification.Priority.MEDIUM;
+            default ->
+                Notification.Priority.LOW;
         };
     }
 
     /**
-     * Get comprehensive timeline for a booking (admin view)
-     * Includes status changes, quotations, and payments
+     * Get comprehensive timeline for a booking (admin view) Includes status
+     * changes, quotations, and payments
      */
     @Transactional(readOnly = true)
     public BookingTimelineResponse getBookingTimeline(Long bookingId) {
@@ -624,7 +788,7 @@ public class BookingService {
         List<BookingStatusHistory> statusHistory = statusHistoryRepository.findByBookingIdOrderByChangedAtAsc(bookingId);
         for (BookingStatusHistory history : statusHistory) {
             String actorName = getActorName(history.getChangedBy(), history.getChangedByRole());
-            String description = String.format("Status changed from %s to %s", 
+            String description = String.format("Status changed from %s to %s",
                     history.getOldStatus() != null ? history.getOldStatus().name() : "N/A",
                     history.getNewStatus().name());
             if (history.getReason() != null && !history.getReason().isEmpty()) {
@@ -655,7 +819,7 @@ public class BookingService {
                         .actorRole(ActorRole.TRANSPORT)
                         .actorId(quotation.getTransportId())
                         .actorName(transportName)
-                        .description(String.format("Quotation submitted: %.0f VND", 
+                        .description(String.format("Quotation submitted: %.0f VND",
                                 quotation.getQuotedPrice().doubleValue()))
                         .referenceId(quotation.getQuotationId())
                         .referenceType("QUOTATION")
@@ -672,13 +836,13 @@ public class BookingService {
                         .actorRole(ActorRole.CUSTOMER)
                         .actorId(booking.getCustomerId())
                         .actorName(customerName)
-                        .description(String.format("Quotation accepted: %.0f VND", 
+                        .description(String.format("Quotation accepted: %.0f VND",
                                 quotation.getQuotedPrice().doubleValue()))
                         .referenceId(quotation.getQuotationId())
                         .referenceType("QUOTATION")
                         .build());
-            } else if (quotation.getRespondedAt() != null && 
-                       quotation.getStatus() == QuotationStatus.REJECTED) {
+            } else if (quotation.getRespondedAt() != null
+                    && quotation.getStatus() == QuotationStatus.REJECTED) {
                 String customerName = getCustomerName(booking.getCustomerId());
                 events.add(BookingTimelineEvent.builder()
                         .timestamp(quotation.getRespondedAt())
@@ -708,7 +872,7 @@ public class BookingService {
                         .actorRole(ActorRole.CUSTOMER)
                         .actorId(booking.getCustomerId())
                         .actorName(customerName)
-                        .description(String.format("%s initiated: %.0f VND (%s)", 
+                        .description(String.format("%s initiated: %.0f VND (%s)",
                                 paymentTypeStr,
                                 payment.getAmount().doubleValue(),
                                 payment.getPaymentMethod().name()))
@@ -728,7 +892,7 @@ public class BookingService {
                         .actorRole(ActorRole.CUSTOMER)
                         .actorId(booking.getCustomerId())
                         .actorName(customerName)
-                        .description(String.format("%s completed: %.0f VND", 
+                        .description(String.format("%s completed: %.0f VND",
                                 paymentTypeStr,
                                 payment.getAmount().doubleValue()))
                         .referenceId(payment.getPaymentId())
@@ -761,7 +925,7 @@ public class BookingService {
                         .map(t -> t.getCompanyName())
                         .orElse(userRepository.findById(userId).map(u -> u.getEmail()).orElse("Unknown"));
             }
-            
+
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
                 return user.getEmail();
@@ -825,7 +989,7 @@ public class BookingService {
         List<Payment> payments = paymentRepository.findByBookingId(bookingId);
         boolean remainingPaymentCompleted = payments.stream()
                 .anyMatch(p -> PaymentType.REMAINING_PAYMENT.equals(p.getPaymentType())
-                        && PaymentStatus.COMPLETED.equals(p.getStatus()));
+                && PaymentStatus.COMPLETED.equals(p.getStatus()));
 
         if (!remainingPaymentCompleted) {
             throw new IllegalStateException("Remaining payment must be completed before confirming booking completion");
@@ -847,11 +1011,11 @@ public class BookingService {
         // In the new flow (Escrow), we trigger settlement processing here
         // instead of just setting status to READY.
         try {
-             settlementService.processSettlement(bookingId);
-             log.info("Settlement processed successfully for booking {}", bookingId);
+            settlementService.processSettlement(bookingId);
+            log.info("Settlement processed successfully for booking {}", bookingId);
         } catch (Exception e) {
-             log.error("Failed to process settlement for booking {}: {}", bookingId, e.getMessage());
-             // Don't fail the confirmation if settlement fails, but log it
+            log.error("Failed to process settlement for booking {}: {}", bookingId, e.getMessage());
+            // Don't fail the confirmation if settlement fails, but log it
         }
 
         // 7. Send notifications

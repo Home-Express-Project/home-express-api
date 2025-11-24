@@ -1,34 +1,45 @@
 package com.homeexpress.home_express_api.controller;
 
-import com.homeexpress.home_express_api.dto.booking.*;
+import com.homeexpress.home_express_api.dto.booking.AssignTransportRequest;
+import com.homeexpress.home_express_api.dto.booking.BookingRequest;
+import com.homeexpress.home_express_api.dto.booking.BookingResponse;
+import com.homeexpress.home_express_api.dto.booking.BookingStatusHistoryResponse;
+import com.homeexpress.home_express_api.dto.booking.BookingUpdateRequest;
 import com.homeexpress.home_express_api.dto.request.ConfirmCompletionRequest;
 import com.homeexpress.home_express_api.dto.request.UploadBookingEvidenceRequest;
 import com.homeexpress.home_express_api.dto.response.BookingEvidenceResponse;
 import com.homeexpress.home_express_api.dto.response.QuotationResponse;
 import com.homeexpress.home_express_api.entity.EvidenceType;
 import com.homeexpress.home_express_api.entity.User;
-import com.homeexpress.home_express_api.entity.UserRole;
 import com.homeexpress.home_express_api.repository.UserRepository;
 import com.homeexpress.home_express_api.service.BookingService;
 import com.homeexpress.home_express_api.service.EvidenceService;
 import com.homeexpress.home_express_api.service.booking.BookingEstimateService;
 import com.homeexpress.home_express_api.util.AuthenticationUtils;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/bookings")
 public class BookingController {
 
+    // Service chinh xu ly tao/cap nhat booking; nhan userId/role de kiem tra quyen
     private final BookingService bookingService;
 
     private final UserRepository userRepository;
@@ -42,14 +53,15 @@ public class BookingController {
     public ResponseEntity<?> createBooking(
             @Valid @RequestBody BookingRequest request,
             Authentication authentication) {
-        
+
         User user = AuthenticationUtils.getUser(authentication, userRepository);
 
+        // Truyen userId/role de service gan chu so huu va validate quyen
         BookingResponse response = bookingService.createBooking(request, user.getUserId(), user.getRole());
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-            "message", "Booking created successfully",
-            "booking", response
+                "message", "Booking created successfully",
+                "booking", response
         ));
     }
 
@@ -58,15 +70,16 @@ public class BookingController {
     public ResponseEntity<?> getBookings(
             @RequestParam(required = false) Long customerId,
             Authentication authentication) {
-        
+
         User user = AuthenticationUtils.getUser(authentication, userRepository);
 
+        // Customer chi thay booking cua minh; Manager co the truyen customerId de loc
         List<BookingResponse> bookings =
                 bookingService.getBookingsForUser(customerId, user.getUserId(), user.getRole());
 
         return ResponseEntity.ok(Map.of(
-            "bookings", bookings,
-            "count", bookings.size()
+                "bookings", bookings,
+                "count", bookings.size()
         ));
     }
 
@@ -75,11 +88,12 @@ public class BookingController {
     public ResponseEntity<?> getBookingById(
             @PathVariable Long id,
             Authentication authentication) {
-        
+
         User user = AuthenticationUtils.getUser(authentication, userRepository);
 
+        // Service tu kiem tra quyen truy cap theo vai tro va owner
         BookingResponse booking = bookingService.getBookingById(id, user.getUserId(), user.getRole());
-        
+
         return ResponseEntity.ok(booking);
     }
 
@@ -89,14 +103,15 @@ public class BookingController {
             @PathVariable Long id,
             @Valid @RequestBody BookingUpdateRequest request,
             Authentication authentication) {
-        
+
         User user = AuthenticationUtils.getUser(authentication, userRepository);
 
+        // Cho phep khach/manager cap nhat thong tin truoc khi booking chot
         BookingResponse response = bookingService.updateBooking(id, request, user.getUserId(), user.getRole());
-        
+
         return ResponseEntity.ok(Map.of(
-            "message", "Booking updated successfully",
-            "booking", response
+                "message", "Booking updated successfully",
+                "booking", response
         ));
     }
 
@@ -106,35 +121,37 @@ public class BookingController {
             @PathVariable Long id,
             @RequestBody(required = false) Map<String, String> body,
             Authentication authentication) {
-        
+
         User user = AuthenticationUtils.getUser(authentication, userRepository);
 
         String reason = body != null ? body.get("reason") : null;
-        
+
+        // Huy booking voi ly do tuy chon; service se log va kiem tra trang thai hop le
         bookingService.cancelBooking(id, reason, user.getUserId(), user.getRole());
-        
+
         return ResponseEntity.ok(Map.of(
-            "message", "Booking cancelled successfully",
-            "bookingId", id
+                "message", "Booking cancelled successfully",
+                "bookingId", id
         ));
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER','TRANSPORT')")
     @GetMapping("/{id}/history")
     public ResponseEntity<?> getBookingHistory(
-    @PathVariable Long id,
-    Authentication authentication) {
+            @PathVariable Long id,
+            Authentication authentication) {
 
-    User user = AuthenticationUtils.getUser(authentication, userRepository);
+        User user = AuthenticationUtils.getUser(authentication, userRepository);
 
-    List<BookingStatusHistoryResponse> history =
-    bookingService.getBookingHistory(id, user.getUserId(), user.getRole());
+        // Lich su trang thai day du de audit tung buoc cua booking
+        List<BookingStatusHistoryResponse> history =
+                bookingService.getBookingHistory(id, user.getUserId(), user.getRole());
 
-    return ResponseEntity.ok(Map.of(
-    "bookingId", id,
-    "history", history,
-    "count", history.size()
-    ));
+        return ResponseEntity.ok(Map.of(
+                "bookingId", id,
+                "history", history,
+                "count", history.size()
+        ));
     }
 
     @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER')")
@@ -145,20 +162,20 @@ public class BookingController {
 
         User user = AuthenticationUtils.getUser(authentication, userRepository);
 
-        // Check if user has access to this booking
+        // Kiem tra quyen truoc khi tra danh sach bao gia
         bookingService.getBookingById(id, user.getUserId(), user.getRole());
 
         List<QuotationResponse> quotations = bookingService.getBookingQuotations(id, user.getUserId(), user.getRole());
 
         return ResponseEntity.ok(Map.of(
-            "bookingId", id,
-            "quotations", quotations,
-            "count", quotations.size()
+                "bookingId", id,
+                "quotations", quotations,
+                "count", quotations.size()
         ));
     }
 
     /**
-     * Khách chọn transport sau khi xem bảng giá dự tính
+     * Khach chon transport sau khi xem bang bao gia/estimate
      */
     @PreAuthorize("hasRole('CUSTOMER')")
     @PutMapping("/{id}/assign-transport")
@@ -183,7 +200,7 @@ public class BookingController {
     }
 
     /**
-     * Khách xem bảng giá dự tính dựa trên rate card của các transport
+     * Khach xem bang gia du tinh dua tren rate card cua cac transport
      */
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/{id}/estimates")
@@ -200,7 +217,7 @@ public class BookingController {
 
         User user = AuthenticationUtils.getUser(authentication, userRepository);
 
-        // Chuẩn hóa query (page/size không âm)
+        // Chuan hoa query de tranh page/size am hoac qua lon
         BookingEstimateService.Query query = new BookingEstimateService.Query();
         query.page = page != null && page > 0 ? page : 1;
         query.size = size != null && size > 0 && size <= 50 ? size : 10;
@@ -222,8 +239,8 @@ public class BookingController {
     }
 
     /**
-     * Customer confirms booking completion after service is done
-     * This triggers status change to CONFIRMED_BY_CUSTOMER and settlement becomes READY
+     * Khach xac nhan dich vu da hoan tat; status chuyen CONFIRMED_BY_CUSTOMER
+     * va settlement se duoc xu ly sang READY/credit vi
      */
     @PreAuthorize("hasRole('CUSTOMER')")
     @PostMapping("/{id}/confirm-completion")
@@ -237,8 +254,8 @@ public class BookingController {
         BookingResponse response = bookingService.confirmBookingCompletion(id, request, user.getUserId());
 
         return ResponseEntity.ok(Map.of(
-            "message", "Booking completion confirmed successfully",
-            "booking", response
+                "message", "Booking completion confirmed successfully",
+                "booking", response
         ));
     }
 
@@ -247,8 +264,7 @@ public class BookingController {
     // ========================================================================
 
     /**
-     * Get all evidence for a booking
-     * Supports filtering by evidence type
+     * Lay toan bo evidence cua booking, co the loc theo loai evidence
      */
     @PreAuthorize("hasAnyRole('CUSTOMER','TRANSPORT','MANAGER')")
     @GetMapping("/{bookingId}/evidence")
@@ -274,8 +290,7 @@ public class BookingController {
     }
 
     /**
-     * Upload evidence for a booking
-     * Customers and transport providers can upload evidence
+     * Upload evidence cho booking (khach hoac transport deu co the)
      */
     @PreAuthorize("hasAnyRole('CUSTOMER','TRANSPORT')")
     @PostMapping("/{bookingId}/evidence")
@@ -300,8 +315,7 @@ public class BookingController {
     }
 
     /**
-     * Delete evidence
-     * Only the uploader or managers can delete evidence
+     * Xoa evidence (chi nguoi upload hoac manager)
      */
     @PreAuthorize("hasAnyRole('CUSTOMER','TRANSPORT','MANAGER')")
     @DeleteMapping("/evidence/{evidenceId}")
@@ -319,4 +333,3 @@ public class BookingController {
     }
 
 }
-
